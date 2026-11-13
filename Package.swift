@@ -50,6 +50,7 @@ let package = Package(
         .target(name: "CoreKitPersistence"),
         .target(name: "CoreKitTesting", dependencies: ["CoreKitAnalytics", "CoreKitStore"]),
 
+        .testTarget(name: "CoreKitTests", dependencies: ["CoreKit"]),
         .testTarget(name: "CoreKitNavigationTests", dependencies: ["CoreKitNavigation"]),
         .testTarget(name: "CoreKitAnalyticsTests", dependencies: ["CoreKitAnalytics", "CoreKitTesting"]),
         .testTarget(name: "CoreKitStoreTests", dependencies: ["CoreKitStore", "CoreKitTesting"]),

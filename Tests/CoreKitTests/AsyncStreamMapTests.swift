@@ -1,8 +1,6 @@
 import CoreKit
 import Testing
 
-/// `CoreKit` has no test target of its own yet: its `AsyncStream.map` is checked here, where
-/// `SessionObserver` consumes it.
 @Suite struct AsyncStreamMapTests {
 
     @Test func mapsEveryElementAndFinishesWithTheSource() async {
