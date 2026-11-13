@@ -95,7 +95,7 @@ public struct StoreKitGateway: StoreGateway {
 
     /// StoreKit wraps a connection problem in `networkError`: the App Store was never reached, which is not the same
     /// as the App Store answering with an error.
-    static func isUnreachable(_ error: any Error) -> Bool {
+    nonisolated static func isUnreachable(_ error: any Error) -> Bool {
         if let storeKitError = error as? StoreKitError, case .networkError = storeKitError { return true }
 
         return error is URLError

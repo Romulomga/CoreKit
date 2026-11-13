@@ -1,5 +1,6 @@
-import CoreKitStore
+@testable import CoreKitStore
 import Foundation
+import StoreKit
 import Testing
 
 struct StoreModelsTests {
@@ -21,6 +22,14 @@ struct StoreModelsTests {
         #expect(eligible.hasEligibleFreeTrial)
         #expect(eligible.freeTrial?.days == 7)
         #expect(!product(Plans.yearly, price: 49.9).hasEligibleFreeTrial)
+    }
+
+    /// "Couldn't reach the App Store" and "the App Store said no" are different problems to whoever reads the report.
+    @Test func aNetworkErrorIsAnUnreachableStoreNotAFailedRequest() {
+        #expect(StoreKitGateway.isUnreachable(StoreKitError.networkError(URLError(.notConnectedToInternet))))
+        #expect(StoreKitGateway.isUnreachable(URLError(.timedOut)))
+        #expect(!StoreKitGateway.isUnreachable(StoreKitError.notAvailableInStorefront))
+        #expect(!StoreKitGateway.isUnreachable(StoreDown()))
     }
 
     @Test func firstChargeUsesTheCalendarNotThirtyDays() throws {
