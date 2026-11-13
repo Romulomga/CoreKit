@@ -1,4 +1,6 @@
 @testable import CoreKitNavigation
+import Observation
+import os
 import Testing
 
 @MainActor
@@ -46,11 +48,76 @@ import Testing
         #expect(!coordinator.contains(.detail(2)))
     }
 
-    @Test func sameDestinationCanBePushedTwice() {
+    // MARK: - The same destination twice
+
+    @Test func pushingTheDestinationOnTopDoesNothing() {
         let coordinator = Coordinator<TestDestination>()
         coordinator.navigate(to: .detail(7))
         coordinator.navigate(to: .detail(7))
-        #expect(coordinator.pathCount == 2)
+
+        #expect(coordinator.destinations == [.detail(7)], "a double tap opens the screen once")
+    }
+
+    @Test func aDifferentValueStillStacks() {
+        let coordinator = Coordinator<TestDestination>()
+        coordinator.navigate(to: .detail(7))
+        coordinator.navigate(to: .detail(8))
+
+        #expect(coordinator.destinations == [.detail(7), .detail(8)])
+    }
+
+    @Test func theSameDestinationFurtherDownIsPushedAgain() {
+        let coordinator = Coordinator<TestDestination>()
+        coordinator.navigate(to: .detail(7))
+        coordinator.navigate(to: .settings)
+        coordinator.navigate(to: .detail(7))
+
+        #expect(coordinator.destinations == [.detail(7), .settings, .detail(7)])
+    }
+
+    /// The modal slots rely on `@Observable` skipping an equal value (no guard of their own): this
+    /// pins that, with a different sheet as the control that the tracking does see changes.
+    @Test func presentingTheSheetAlreadyUpChangesNothing() {
+        let coordinator = Coordinator<TestDestination>()
+        coordinator.navigate(to: .settings, type: .sheet)
+
+        let changed = OSAllocatedUnfairLock(initialState: false)
+        withObservationTracking {
+            _ = coordinator.sheetDestination
+        } onChange: {
+            changed.withLock { $0 = true }
+        }
+
+        coordinator.navigate(to: .settings, type: .sheet)
+        #expect(coordinator.sheetDestination == .settings)
+        #expect(!changed.withLock { $0 }, "no change, so nothing watching the sheet re-renders")
+
+        coordinator.navigate(to: .detail(1), type: .sheet)
+        #expect(changed.withLock { $0 }, "control: another sheet is a change")
+    }
+
+    @Test func presentingTheCoverAlreadyUpChangesNothing() {
+        let coordinator = Coordinator<TestDestination>()
+        coordinator.navigate(to: .mainTab, type: .fullScreenCover)
+
+        let changed = OSAllocatedUnfairLock(initialState: false)
+        withObservationTracking {
+            _ = coordinator.fullCoverDestination
+        } onChange: {
+            changed.withLock { $0 = true }
+        }
+
+        coordinator.navigate(to: .mainTab, type: .fullScreenCover)
+        #expect(coordinator.fullCoverDestination == .mainTab)
+        #expect(!changed.withLock { $0 })
+    }
+
+    @Test func anotherSheetReplacesTheOneUp() {
+        let coordinator = Coordinator<TestDestination>()
+        coordinator.navigate(to: .settings, type: .sheet)
+        coordinator.navigate(to: .detail(1), type: .sheet)
+
+        #expect(coordinator.sheetDestination == .detail(1))
     }
 
     // MARK: - Modals

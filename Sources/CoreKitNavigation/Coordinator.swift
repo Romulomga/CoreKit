@@ -55,10 +55,20 @@ public final class Coordinator<D: NavigableDestination> {
 
     // MARK: - Navigating
 
+    /// Shows `destination`. Pushing the destination already on top does nothing: a second tap
+    /// that landed before the first push ended stacked the screen twice (two backs to leave it,
+    /// two loads). The same route further down the stack is still pushed (profile A → post →
+    /// profile A). Twin of CoreKit-Android's `Navigator.navigate`.
+    ///
+    /// The modal slots need no such check: an equal value is no change to `@Observable` nor to
+    /// `.sheet(item:)`, so the sheet already up stays as it is. A different one replaces it, which
+    /// is how a deep link shows something over an open sheet.
     public func navigate(to destination: D, type: NavigationType = .push) {
         switch type {
         case .push:
             if pushInterceptor?(destination) == true { return }
+
+            guard path.last?.destination != destination else { return }
 
             path.append(NavigationStep(destination: destination))
 

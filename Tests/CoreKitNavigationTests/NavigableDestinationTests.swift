@@ -27,6 +27,7 @@ import Testing
         let coordinator = Coordinator<PlainRoute>()
         coordinator.navigate(to: .list)
         coordinator.navigate(to: .detail(id: 1))
+        coordinator.navigate(to: .detail(id: 1))
         #expect(coordinator.destinations == [.list, .detail(id: 1)])
 
         coordinator.navigate(to: .detail(id: 2), type: .sheet)
