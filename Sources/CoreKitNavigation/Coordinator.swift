@@ -1,0 +1,112 @@
+import Observation
+import SwiftUI
+
+// MARK: - NavigationType
+
+/// How `Coordinator.navigate(to:type:)` shows a destination.
+public enum NavigationType: Sendable {
+    case push, sheet, fullScreenCover
+}
+
+// MARK: - Coordinator
+
+/// The navigation state of one `NavigationHost`: the pushed path plus the sheet and
+/// full-screen-cover slots. A tab app keeps one per tab, owned above the `TabView`, so a deep
+/// link can switch tabs and drive the right stack.
+///
+/// Screens read it with `@Environment(Coordinator<Route>.self)`; an app whose features only
+/// report intent through callbacks drives it from the place that builds the views.
+@MainActor
+@Observable
+public final class Coordinator<D: NavigableDestination> {
+
+    // MARK: - State
+
+    var path: [NavigationStep<D>] = []
+
+    public internal(set) var sheetDestination: D?
+
+    public internal(set) var fullCoverDestination: D?
+
+    /// Offered every push (and every destination of `replaceAll`) before it lands on this stack.
+    /// A container that shows some destinations elsewhere returns true to take one, and nothing
+    /// is pushed: an iPad list/detail split puts the item beside its list, deep links included.
+    @ObservationIgnored public var pushInterceptor: (@MainActor (D) -> Bool)?
+
+    public init() {}
+
+    // MARK: - Reading
+
+    public var pathCount: Int { path.count }
+
+    public var currentDestination: D? { path.last?.destination }
+
+    /// Everything pushed, bottom to top.
+    public var destinations: [D] { path.map(\.destination) }
+
+    public func contains(_ destination: D) -> Bool {
+        path.contains { $0.destination == destination }
+    }
+
+    /// What the user is looking at, modals first.
+    func visibleDestination(root: D) -> D {
+        fullCoverDestination ?? sheetDestination ?? path.last?.destination ?? root
+    }
+
+    // MARK: - Navigating
+
+    public func navigate(to destination: D, type: NavigationType = .push) {
+        switch type {
+        case .push:
+            if pushInterceptor?(destination) == true { return }
+
+            path.append(NavigationStep(destination: destination))
+
+        case .sheet:
+            sheetDestination = destination
+
+        case .fullScreenCover:
+            fullCoverDestination = destination
+        }
+    }
+
+    public func pop() {
+        guard !path.isEmpty else { return }
+
+        path.removeLast()
+    }
+
+    public func popToRoot() {
+        path.removeAll()
+    }
+
+    /// Pops everything above the first `destination` in the stack; nothing when it isn't there.
+    public func pop(to destination: D) {
+        guard let index = path.firstIndex(where: { $0.destination == destination }) else { return }
+
+        path.removeSubrange((index + 1)..<path.count)
+    }
+
+    public func dismissSheet() {
+        sheetDestination = nil
+    }
+
+    public func dismissFullCover() {
+        fullCoverDestination = nil
+    }
+
+    /// Replaces the stack with `destination` over the root: back from the new screen lands on the
+    /// root, not on the flow that led to it (the form that issued a document).
+    public func replaceAll(with destination: D) {
+        replaceAll(with: [destination])
+    }
+
+    /// Replaces the stack with `destinations`, bottom to top (a deep link that opens a screen
+    /// two levels down). Each one is offered to `pushInterceptor` first, and a claimed one stays
+    /// out of the stack.
+    public func replaceAll(with destinations: [D]) {
+        path = destinations
+            .filter { pushInterceptor?($0) != true }
+            .map { NavigationStep(destination: $0) }
+    }
+}
