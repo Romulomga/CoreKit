@@ -193,4 +193,45 @@ import Testing
         coordinator.navigate(to: .detail(5))
         #expect(coordinator.currentDestination == .detail(5))
     }
+
+    // MARK: - Changes from the stack's own controls
+
+    @Test func aLinkTappedTwiceStacksItsScreenOnce() {
+        let coordinator = Coordinator<TestDestination>()
+        coordinator.navigate(to: .detail(1))
+
+        coordinator.applyStackChange(coordinator.path + [NavigationStep(destination: .settings)])
+        coordinator.applyStackChange(coordinator.path + [NavigationStep(destination: .settings)])
+
+        #expect(coordinator.destinations == [.detail(1), .settings])
+    }
+
+    @Test func aLinkKeepsTheEntryItPushed() {
+        let coordinator = Coordinator<TestDestination>()
+        let step = NavigationStep<TestDestination>(destination: .detail(2))
+
+        coordinator.applyStackChange([step])
+
+        #expect(coordinator.path == [step])
+    }
+
+    @Test func aLinkIsOfferedToTheInterceptor() {
+        let coordinator = Coordinator<TestDestination>()
+        coordinator.pushInterceptor = { $0 == .settings }
+
+        coordinator.applyStackChange([NavigationStep(destination: .settings)])
+
+        #expect(coordinator.pathCount == 0)
+    }
+
+    @Test func theBackGestureIsTakenAsItIs() {
+        let coordinator = Coordinator<TestDestination>()
+        coordinator.navigate(to: .detail(1))
+        coordinator.navigate(to: .settings)
+        coordinator.navigate(to: .detail(3))
+
+        coordinator.applyStackChange(Array(coordinator.path.prefix(1)))
+
+        #expect(coordinator.destinations == [.detail(1)])
+    }
 }

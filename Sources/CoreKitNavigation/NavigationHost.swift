@@ -75,7 +75,7 @@ public struct NavigationHost<D: NavigableDestination, Content: View>: View {
     public var body: some View {
         @Bindable var coordinator = coordinator
 
-        NavigationStack(path: $coordinator.path) {
+        NavigationStack(path: Binding(get: { coordinator.path }, set: { coordinator.applyStackChange($0) })) {
             viewBuilder(root)
                 .navigationDestination(for: NavigationStep<D>.self) { step in
                     viewBuilder(step.destination)

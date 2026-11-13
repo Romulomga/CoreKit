@@ -66,17 +66,33 @@ public final class Coordinator<D: NavigableDestination> {
     public func navigate(to destination: D, type: NavigationType = .push) {
         switch type {
         case .push:
-            if pushInterceptor?(destination) == true { return }
-
-            guard path.last?.destination != destination else { return }
-
-            path.append(NavigationStep(destination: destination))
+            push(NavigationStep(destination: destination))
 
         case .sheet:
             sheetDestination = destination
 
         case .fullScreenCover:
             fullCoverDestination = destination
+        }
+    }
+
+    private func push(_ step: NavigationStep<D>) {
+        if pushInterceptor?(step.destination) == true { return }
+
+        guard path.last?.destination != step.destination else { return }
+
+        path.append(step)
+    }
+
+    /// What the stack's own controls ask for: a `RouteLink` appends one entry, the back button and
+    /// the edge swipe drop entries. An append goes through the same rules as `navigate(to:)`, so a
+    /// link tapped twice doesn't stack its screen twice; anything else is the system popping, and
+    /// is taken as it is.
+    func applyStackChange(_ newPath: [NavigationStep<D>]) {
+        if newPath.count == path.count + 1, Array(newPath.dropLast()) == path, let appended = newPath.last {
+            push(appended)
+        } else {
+            path = newPath
         }
     }
 
