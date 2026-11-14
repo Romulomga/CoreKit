@@ -15,6 +15,15 @@ struct StoreModelsTests {
         #expect(product(Plans.yearly, price: try #require(Decimal(string: "0.29"))).priceCents == 29)
     }
 
+    @Test func theChargedPriceRoundsLikeTheListedOne() throws {
+        let charged = StoreTransaction(id: 1, productID: Plans.yearly.productID, price: try #require(Decimal(string: "9.995")))
+        let trial = StoreTransaction(id: 2, productID: Plans.yearly.productID, price: 0)
+
+        #expect(charged.priceCents == 1000)
+        #expect(trial.priceCents == 0)
+        #expect(StoreTransaction(id: 3, productID: Plans.yearly.productID).priceCents == nil)
+    }
+
     @Test func freeTrialOnlyWhenTheAccountCanStillGetIt() {
         let trial = FreeTrial(value: 1, unit: .week)
         let eligible = ProProduct(plan: Plans.yearly, displayPrice: "R$ 49,90", price: 49.9, currencyCode: "BRL", freeTrial: trial)

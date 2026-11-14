@@ -150,8 +150,11 @@ public struct ProProduct: Sendable, Identifiable, Equatable {
     public var hasEligibleFreeTrial: Bool { freeTrial != nil }
 
     /// `price` in integer cents, rounded half up, for analytics parameters.
-    public var priceCents: Int {
-        var cents = price * 100
+    public var priceCents: Int { Self.cents(price) }
+
+    /// Integer cents, rounded half up: the one rounding every price in analytics goes through.
+    static func cents(_ amount: Decimal) -> Int {
+        var cents = amount * 100
         var rounded = Decimal()
 
         NSDecimalRound(&rounded, &cents, 0, .plain)
@@ -182,6 +185,10 @@ public struct StoreTransaction: Sendable, Equatable {
     /// What was actually charged, which may differ from the listed price (an introductory or promotional offer, another
     /// storefront). `nil` when StoreKit doesn't say.
     public let price: Decimal?
+
+    /// `price` in integer cents, rounded like `ProProduct.priceCents`: 0 for a free trial, `nil` when StoreKit didn't
+    /// say. The revenue of a purchase event, the price charged rather than the listed one.
+    public var priceCents: Int? { price.map(ProProduct.cents) }
 
     public let currencyCode: String?
 
