@@ -5,7 +5,7 @@ import StoreKit
 /// An `AnalyticsClient` that keeps what it is told, for asserting on events in an app's tests:
 ///
 ///     let analytics = RecordingAnalyticsClient()
-///     let store = Store(analytics: analytics)
+///     let model = PaywallModel(analytics: analytics)
 ///     ...
 ///     #expect(analytics.eventNames == ["purchase_complete"])
 public final class RecordingAnalyticsClient: AnalyticsClient {
