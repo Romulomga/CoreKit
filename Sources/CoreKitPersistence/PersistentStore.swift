@@ -117,7 +117,7 @@ public enum PersistentStore {
         }
     }
 
-    private static let logger = Logger(subsystem: "CoreKit", category: "persistence")
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "CoreKit", category: "persistence")
 }
 
 private extension StoreLocation {
