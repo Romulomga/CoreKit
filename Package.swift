@@ -53,6 +53,14 @@ let package = Package(
         .testTarget(name: "CoreKitTests", dependencies: ["CoreKit"]),
         .testTarget(name: "CoreKitNavigationTests", dependencies: ["CoreKitNavigation"]),
         .testTarget(name: "CoreKitAnalyticsTests", dependencies: ["CoreKitAnalytics", "CoreKitTesting"]),
+        .testTarget(
+            name: "CoreKitFirebaseTests",
+            dependencies: [
+                "CoreKitFirebase",
+                "CoreKitAnalytics",
+                .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
+            ]
+        ),
         .testTarget(name: "CoreKitStoreTests", dependencies: ["CoreKitStore", "CoreKitTesting"]),
         .testTarget(name: "CoreKitReviewTests", dependencies: ["CoreKitReview"]),
         .testTarget(name: "CoreKitPersistenceTests", dependencies: ["CoreKitPersistence"]),
