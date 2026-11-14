@@ -1,16 +1,4 @@
 import CoreKitStore
-import Observation
-
-/// The right to Pro the test picks. Start it at `.unknown` to test a screen before the right is known.
-@MainActor
-@Observable
-public final class FakeEntitlement: Entitlement {
-    public var state: EntitlementState
-
-    public init(_ state: EntitlementState = .free) {
-        self.state = state
-    }
-}
 
 /// Keeps the confirmed right in memory. `saved` starts as what was "remembered" before the launch.
 @MainActor

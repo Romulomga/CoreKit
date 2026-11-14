@@ -26,7 +26,7 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
 - `CoreKitReview`: `ReviewGate` (uma vez por versão, intervalo opcional) e `reviewRequest(for:gate:)`.
 - `CoreKitPersistence`: `PersistentStore.open` devolve `.healthy` ou `.degraded`, nunca derruba o launch e nunca
   apaga o arquivo; `locationIsReachable` para o "Verificar de novo".
-- `CoreKitTesting`: `RecordingAnalyticsClient`, `FakeStoreGateway`, `FakeEntitlement`, `FakeEntitlementMemory`.
+- `CoreKitTesting`: `RecordingAnalyticsClient`, `FakeStoreGateway`, `FakeEntitlementMemory`.
 
 Só no iOS: `SessionObserver`, `ReloadNotifier`, `NavigationDiagnostics`, a barra de abas escondida no push, a
 validade da assinatura dentro de `EntitlementKind`.
