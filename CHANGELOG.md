@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 - 2026-11-14
+
+- `CoreKitStore`: `StoreTransaction.priceCents`, o preço cobrado em centavos com o mesmo arredondamento de
+  `ProProduct.priceCents` (o Canetto e o MagicPick repetiam a conta).
+- `CoreKitPersistence`: `ForcedFailure` ganha `init()` público, para previews da tela de recuperação; o log de falha
+  usa o subsystem do app (o bundle id), como o analytics, em vez de "CoreKit".
+- `CoreKitMixpanel`: `.mixpanel(token:flushInterval:)`, para um build de homolog rastreado pelo QA.
+- `CoreKitTesting`: sai o `FakeEntitlement`, que nenhum app nem teste usava.
+
 ## 0.1.0 - 2026-11-13
 
 - `CoreKit`: `onFirstAppear`, `AsyncStream.map`.
