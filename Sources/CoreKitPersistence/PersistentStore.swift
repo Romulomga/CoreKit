@@ -40,7 +40,9 @@ public enum StoreLocation: Sendable {
 /// the result, and never reopens a degraded store: closing and opening the app is the retry.
 public enum PersistentStore {
     /// Stands in for the real failure when the app forces the degraded state.
-    public struct ForcedFailure: Error {}
+    public struct ForcedFailure: Error {
+        public init() {}
+    }
 
     /// Opens the store from its versioned schema and migration plan.
     ///
