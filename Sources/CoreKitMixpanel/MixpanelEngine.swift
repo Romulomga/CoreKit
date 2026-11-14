@@ -6,14 +6,18 @@ extension AnalyticsEngine {
     /// Mixpanel with the app's project token, with its automatic events (first open, app updated,
     /// sessions) on, the counterpart of Firebase's own. `nil` or empty leaves the engine off, so a
     /// build without the secrets file still runs. iOS only: no Android app uses Mixpanel.
-    public static func mixpanel(token: String?) -> AnalyticsEngine {
+    ///
+    /// `flushInterval` is how often, in seconds, queued events go out (Mixpanel's default is 60). A
+    /// staging build traced with `--analytics-debug` passes something short, so QA sees an event
+    /// right after the tap instead of a minute later.
+    public static func mixpanel(token: String?, flushInterval: Double = 60) -> AnalyticsEngine {
         AnalyticsEngine(name: "Mixpanel") {
             guard let token, !token.isEmpty else {
                 analyticsLog.notice("Mixpanel off: no token")
                 return nil
             }
 
-            Mixpanel.initialize(token: token, trackAutomaticEvents: true)
+            Mixpanel.initialize(token: token, trackAutomaticEvents: true, flushInterval: flushInterval)
 
             return MixpanelAnalyticsClient()
         }
