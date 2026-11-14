@@ -53,19 +53,34 @@ enum FirebaseSetup {
     /// would crash instead of just not reporting.
     @MainActor
     static func configure(_ plist: FirebasePlist) -> Bool {
-        guard FirebaseApp.app() == nil else { return true }
+        configure(plist, isConfigured: FirebaseApp.app() != nil, bundle: .main) { FirebaseApp.configure(options: $0) }
+    }
 
-        let url = switch plist {
-        case .bundled: Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist")
-        case .file(let url): Optional(url)
-        }
+    /// The rule apart from Firebase's singleton, so a test runs it without setting Firebase up.
+    static func configure(
+        _ plist: FirebasePlist,
+        isConfigured: Bool,
+        bundle: Bundle,
+        configure: (FirebaseOptions) -> Void
+    ) -> Bool {
+        guard !isConfigured else { return true }
 
-        guard let url, let options = FirebaseOptions(contentsOfFile: url.path) else {
+        guard let url = plist.url(in: bundle), let options = FirebaseOptions(contentsOfFile: url.path) else {
             analyticsLog.notice("Firebase off: no GoogleService-Info.plist to read")
             return false
         }
 
-        FirebaseApp.configure(options: options)
+        configure(options)
         return true
+    }
+}
+
+extension FirebasePlist {
+    /// `.bundled` looks in `bundle`: the main bundle at launch.
+    func url(in bundle: Bundle) -> URL? {
+        switch self {
+        case .bundled: bundle.url(forResource: "GoogleService-Info", withExtension: "plist")
+        case .file(let url): url
+        }
     }
 }

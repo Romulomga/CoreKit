@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `CoreKitFirebase`: os parâmetros do `screen_view`, do `purchase` e dos eventos, e a escolha do plist, saem para
+  funções puras internas, testadas em `CoreKitFirebaseTests` sem o Firebase configurado. Nada muda na API pública nem
+  no que vai para o Firebase.
+
 ## 0.1.1 - 2026-11-14
 
 - `CoreKitStore`: `StoreTransaction.priceCents`, o preço cobrado em centavos com o mesmo arredondamento de

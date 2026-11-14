@@ -7,16 +7,11 @@ import StoreKit
 /// thread-safe singletons, so it is `Sendable` as is.
 struct FirebaseAnalyticsClient: AnalyticsClient {
     func log(_ name: String, parameters: [String: AnalyticsValue]) {
-        FirebaseAnalytics.Analytics.logEvent(name, parameters: parameters.isEmpty ? nil : parameters.mapValues(Self.parameter))
+        FirebaseAnalytics.Analytics.logEvent(name, parameters: Self.eventParameters(parameters))
     }
 
     func screen(_ name: String) {
-        // GA4 groups screens by class too and reports "(not set)" without one. Automatic screen
-        // reporting would fill it with the hosting controller's name, which is why it is off.
-        FirebaseAnalytics.Analytics.logEvent(AnalyticsEventScreenView, parameters: [
-            AnalyticsParameterScreenName: name,
-            AnalyticsParameterScreenClass: name,
-        ])
+        FirebaseAnalytics.Analytics.logEvent(AnalyticsEventScreenView, parameters: Self.screenViewParameters(name))
     }
 
     func setUserProperty(_ value: String?, forName name: String) {
@@ -36,9 +31,30 @@ struct FirebaseAnalyticsClient: AnalyticsClient {
     }
 
     func logPurchase(_ purchase: PurchaseRevenue) {
-        // GA4 sums `value` verbatim, so it goes in whole currency units, and drops the revenue when
-        // `value` or `currency` is missing. The item, with its own price, fills the per-product
-        // reports.
+        FirebaseAnalytics.Analytics.logEvent(AnalyticsEventPurchase, parameters: Self.purchaseParameters(purchase))
+    }
+
+    // MARK: - Parameters
+
+    // What each call hands Firebase, built apart from the SDK so a test reads it without Firebase set up.
+
+    static func eventParameters(_ parameters: [String: AnalyticsValue]) -> [String: Any]? {
+        parameters.isEmpty ? nil : parameters.mapValues(parameter)
+    }
+
+    /// GA4 groups screens by class too and reports "(not set)" without one. Automatic screen
+    /// reporting would fill it with the hosting controller's name, which is why it is off.
+    static func screenViewParameters(_ name: String) -> [String: Any] {
+        [
+            AnalyticsParameterScreenName: name,
+            AnalyticsParameterScreenClass: name,
+        ]
+    }
+
+    /// GA4 sums `value` verbatim, so it goes in whole currency units, and drops the revenue when
+    /// `value` or `currency` is missing. The item, with its own price, fills the per-product
+    /// reports.
+    static func purchaseParameters(_ purchase: PurchaseRevenue) -> [String: Any] {
         let value = Double(purchase.valueCents) / 100
 
         var parameters: [String: Any] = [
@@ -58,7 +74,7 @@ struct FirebaseAnalyticsClient: AnalyticsClient {
             parameters[AnalyticsParameterTransactionID] = transactionID
         }
 
-        FirebaseAnalytics.Analytics.logEvent(AnalyticsEventPurchase, parameters: parameters)
+        return parameters
     }
 
     /// A GA4 custom dimension reads only a parameter's text slot, and Firebase puts a `Bool` in the
