@@ -64,5 +64,6 @@ let package = Package(
         .testTarget(name: "CoreKitStoreTests", dependencies: ["CoreKitStore", "CoreKitTesting"]),
         .testTarget(name: "CoreKitReviewTests", dependencies: ["CoreKitReview"]),
         .testTarget(name: "CoreKitPersistenceTests", dependencies: ["CoreKitPersistence"]),
+        .testTarget(name: "CoreKitTestingTests", dependencies: ["CoreKitTesting"]),
     ]
 )

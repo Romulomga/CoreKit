@@ -12,7 +12,9 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
 
 - `CoreKit`: `onFirstAppear` (também assíncrono: a carga inicial da tela roda uma vez por entrada na pilha, e de
   novo só se foi cancelada), `AsyncStream.map`, `SingleFlight`/`KeyedSingleFlight` (a ação que grava, envia ou
-  exclui roda uma vez por vez; o segundo toque, dado enquanto a primeira ainda roda, é ignorado).
+  exclui roda uma vez por vez; o segundo toque, dado enquanto a primeira ainda roda, é ignorado),
+  `AsyncStream.observing` (o valor que uma leitura devolve agora e de novo a cada mudança observável que ela tocou,
+  sem repetidos: a tela recebe os dados do banco por valor, nunca o objeto do SwiftData).
 - `CoreKitNavigation`: `Coordinator` (push, sheet, tela cheia; empilhar o destino que já está no topo não faz nada),
   `NavigationHost`, `RouteLink` (linha com o chevron nativo que passa pelas regras do coordinator),
   `TabNavigation`/`TabNavigationRoot`, `ReloadNotifier`/`onReload`, `SessionObserver` (destinos
@@ -28,10 +30,14 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
 - `CoreKitReview`: `ReviewGate` (uma vez por versão, intervalo opcional) e `reviewRequest(for:gate:)`.
 - `CoreKitPersistence`: `PersistentStore.open` devolve `.healthy` ou `.degraded`, nunca derruba o launch e nunca
   apaga o arquivo; `locationIsReachable` para o "Verificar de novo".
-- `CoreKitTesting`: `RecordingAnalyticsClient`, `FakeStoreGateway`, `FakeEntitlementMemory`.
+- `CoreKitTesting`: `RecordingAnalyticsClient`, `FakeStoreGateway`, `FakeEntitlementMemory`, `eventually` (espera,
+  sem travar o main actor, o que chega à ViewModel por um fluxo), `ArchitectureCheck`/`ArchitectureRule` (um teste
+  que lê o código do app e aponta arquivo e linha que fogem da arquitetura: objeto do banco numa View, pasta `Views/`).
 
 Só no iOS: `SessionObserver`, `ReloadNotifier`, `NavigationDiagnostics`, a barra de abas escondida no push, a
-validade da assinatura dentro de `EntitlementKind`.
+validade da assinatura dentro de `EntitlementKind`, `AsyncStream.observing` (no Android, o `Flow` do Room mapeado
+para o estado da tela com `stateInScreen`), `eventually` (no Android, `runTest` e o `MainDispatcherRule`) e
+`ArchitectureCheck` (entra no CoreKit-Android quando houver um app Android no mesmo padrão).
 
 ## Uso num app
 

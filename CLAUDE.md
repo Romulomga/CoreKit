@@ -50,7 +50,9 @@ recovery screen, and the engine keys (`GoogleService-Info.plist`, Mixpanel token
 - Every piece ships with a test that fails without it.
 - `@MainActor @Observable` for UI-facing state; async/await only; no Combine, no `ObservableObject`.
 - Blank line between logical blocks.
-- A new piece enters only when at least two apps need it; otherwise it stays in the app.
+- A new piece enters only when at least two apps need it; otherwise it stays in the app. Exception asked by the owner
+  (2026-11-16): `AsyncStream.observing`, `eventually` and `ArchitectureCheck` entered with Minha Micro Área alone,
+  because every new iOS app starts from the `novo-app-ios` skill skeleton, which imports them.
 
 ## Verify
 

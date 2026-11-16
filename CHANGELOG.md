@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.4 - 2026-11-16
+
+- `CoreKit`: `AsyncStream.observing { leitura }`, o valor que a leitura devolve agora e de novo a cada mudança
+  observável que ela tocou, descartando repetidos e parando quando quem escuta sai. É o fluxo de valores do padrão de
+  arquitetura dos apps: a ViewModel transforma os objetos do banco em valores dentro da leitura, e o store faz cada
+  gravação contar lendo o próprio contador ali dentro. Saiu do Minha Micro Área. Só iOS (no Android, o `Flow` do Room
+  com `stateInScreen`).
+- `CoreKitTesting`: `eventually`, para conferir o que chega à ViewModel pelo fluxo (`#expect(await eventually { ... })`),
+  e `ArchitectureCheck`/`ArchitectureRule`, para o teste de arquitetura de cada app (regras por arquivo e padrão,
+  pastas proibidas e os nomes dos `@Model` lidos do código). Só iOS por enquanto.
+
 ## 0.1.3 - 2026-11-16
 
 - `CoreKit`: `onFirstAppear` assíncrono, para a carga inicial da tela. O `.task { await viewModel.load() }` carregava
