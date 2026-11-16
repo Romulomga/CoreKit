@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 - 2026-11-16
+
+- `CoreKit`: `onFirstAppear` assíncrono, para a carga inicial da tela. O `.task { await viewModel.load() }` carregava
+  de novo a cada volta à tela; aqui roda uma vez por entrada na pilha. Sair antes de terminar cancela a carga, e a
+  próxima aparição roda de novo. Gêmeo do `LaunchedOnce` do CoreKit-Android.
+
 ## 0.1.2 - 2026-11-15
 
 - `CoreKit`: `SingleFlight` e `KeyedSingleFlight`, gêmeos dos do CoreKit-Android. A trava fecha antes de qualquer
