@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.1.2 - 2026-11-15
 
+- `CoreKit`: `SingleFlight` e `KeyedSingleFlight`, gêmeos dos do CoreKit-Android. A trava fecha antes de qualquer
+  `await` e abre quando a ação termina, falha ou é cancelada; `launch` devolve a `Task` (ou `nil` quando o toque foi
+  ignorado) e `run` roda na task de quem chama. Os apps tinham cada um o seu `isSaving`/`isRestoring`.
 - `CoreKitFirebase`: os parâmetros do `screen_view`, do `purchase` e dos eventos, e a escolha do plist, saem para
   funções puras internas, testadas em `CoreKitFirebaseTests` sem o Firebase configurado. Nada muda na API pública nem
   no que vai para o Firebase.
