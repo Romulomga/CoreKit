@@ -81,6 +81,6 @@ private final class Counter {
         counter.value = 1
         try await Task.sleep(for: .milliseconds(50))
 
-        #expect(reads <= readsWhenGone + 1, "at most the read already scheduled; nothing after the stop")
+        #expect(reads == readsWhenGone, "no read after the consumer went away")
     }
 }
