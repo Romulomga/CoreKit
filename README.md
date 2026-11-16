@@ -10,7 +10,8 @@ divergido. Gêmeo por conceito do [CoreKit-Android](https://github.com/Romulomga
 Cada módulo é uma biblioteca do pacote, e o app só compila as que importa. O SwiftPM baixa todas as dependências
 declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
 
-- `CoreKit`: `onFirstAppear`, `AsyncStream.map`, `SingleFlight`/`KeyedSingleFlight` (a ação que grava, envia ou
+- `CoreKit`: `onFirstAppear` (também assíncrono: a carga inicial da tela roda uma vez por entrada na pilha, e de
+  novo só se foi cancelada), `AsyncStream.map`, `SingleFlight`/`KeyedSingleFlight` (a ação que grava, envia ou
   exclui roda uma vez por vez; o segundo toque, dado enquanto a primeira ainda roda, é ignorado).
 - `CoreKitNavigation`: `Coordinator` (push, sheet, tela cheia; empilhar o destino que já está no topo não faz nada),
   `NavigationHost`, `RouteLink` (linha com o chevron nativo que passa pelas regras do coordinator),
