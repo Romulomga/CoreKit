@@ -44,7 +44,13 @@ recovery screen, and the engine keys (`GoogleService-Info.plist`, Mixpanel token
 
 ## Conventions
 
-- Only what an app uses is `public`. Doc comments in English explain the *why* (the bug the piece prevents), like
+- **Public API is judged by what any app would need, not by what today's apps use** (owner, 2026-11-17). CoreKit
+  serves apps that don't exist yet: an extension point (a protocol the app implements, a policy it passes, a logger it
+  routes) stays public even if no current app plugs into it. Nothing an app should choose is hard-coded (launch
+  arguments, keys, order, names, header names): it is a parameter with today's behaviour as the default. A large new
+  feature (subscription tiers, consumables, promotional offers) enters when the first app needs it, but the current
+  design must not block it. Internal stays internal only when it is plumbing nobody outside would replace.
+- Doc comments in English explain the *why* (the bug the piece prevents), like
   DSKit; no comments that restate the code.
 - Nothing app-specific: no product ids, strings, event names, bundle ids or app names.
 - Every piece ships with a test that fails without it.
@@ -52,7 +58,9 @@ recovery screen, and the engine keys (`GoogleService-Info.plist`, Mixpanel token
 - Blank line between logical blocks.
 - A new piece enters only when at least two apps need it; otherwise it stays in the app. Exception asked by the owner
   (2026-11-16): `AsyncStream.observing`, `eventually` and `ArchitectureCheck` entered with Minha Micro Área alone,
-  because every new iOS app starts from the `novo-app-ios` skill skeleton, which imports them.
+  because every new iOS app starts from the `novo-app-ios` skill skeleton, which imports them. Second exception
+  (2026-11-17): `CoreKitNetwork` (Homer's `NetworkKit`, generalized) entered with Homer alone, so any app with a
+  backend starts from it.
 
 ## Verify
 

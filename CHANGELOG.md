@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.9 - 2026-11-17
+
+- `CoreKitNetwork` (novo produto): o `NetworkKit` do Homer, generalizado para qualquer app com servidor. Mesmo
+  comportamento e os mesmos 174 testes, arrumado antes de entrar: pastas por assunto (`Request/`, `Auth/`, `Retry/`,
+  `Connectivity/`, `Logging/`, `Errors/`), `NetworkServiceProtocol` renomeado para `NetworkServing`, comentários em
+  inglês. Toda a API pública ficou. O que era fixo virou parâmetro do `NetworkService`, com o valor de antes como padrão:
+  `requestTimeout`/`resourceTimeout` (40 e 60 s; o tempo da requisição agora vale também no `URLRequest`, que antes
+  ficava sempre em 40), `interceptors` do app (rodam depois da autenticação e antes do log), `logger` do app,
+  `redactedHeaders` (o `headerKey` do token é sempre mascarado, qualquer que seja o nome) e `urlRedaction`.
+- `URLRedaction` (gêmeo do `UrlRedaction` do CoreKit-Android): o espelho do log de debug no log do sistema leva a URL
+  sem query, sem fragmento e sem os trechos de caminho que o app marca como dado digitado.
+- Regra nova no `CLAUDE.md`: API pública e pontos de extensão se avaliam pelo que um app qualquer precisaria, não pelo
+  que os apps de hoje usam.
+
 ## 0.1.8 - 2026-11-17
 
 - `CoreKitAnalytics`: a chave do usuário ("Enviar estatísticas" nos Ajustes), `Analytics.setCollectionEnabled(_:)`,

@@ -33,6 +33,13 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
 - `CoreKitReview`: `ReviewGate` (uma vez por versão, intervalo opcional) e `reviewRequest(for:gate:)`.
 - `CoreKitPersistence`: `PersistentStore.open` devolve `.healthy` ou `.degraded`, nunca derruba o launch e nunca
   apaga o arquivo; `locationIsReachable` para o "Verificar de novo".
+- `CoreKitNetwork`: cliente HTTP sobre `URLSession` (`NetworkService`, e o protocolo `NetworkServing` para o dublê
+  nos testes do app): JSON na ida e na volta, token em cada requisição que precisa (`TokenProvider`, `AuthPolicy`,
+  renovação única num 401 dividida por todas as requisições que bateram nele, `TokenRefresher`), leitura repetida com
+  espera crescente (`RetryPolicy`; mutação nunca é reenviada), nada sai sem rede (`NetworkMonitor`), e um log que
+  nunca grava credencial onde ela sobrevive à sessão (cabeçalhos mascarados, `URLRedaction`). Tudo o que um app pode
+  querer escolher é parâmetro: tempos limite, cabeçalho do token, interceptadores próprios (`NetworkInterceptor`),
+  logger próprio (`NetworkLogger`), cabeçalhos e trechos de URL mascarados.
 - `CoreKitTesting`: `RecordingAnalyticsClient`, `FakeStoreGateway`, `FakeEntitlementMemory`, `eventually` (espera,
   sem travar o main actor, o que chega à ViewModel por um fluxo; o prazo conta voltas do main actor, não o relógio,
   para não estourar quando as suítes rodam em paralelo), `ArchitectureCheck`/`ArchitectureRule` (um teste

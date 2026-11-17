@@ -20,6 +20,7 @@ let package = Package(
         .library(name: "CoreKitStore", targets: ["CoreKitStore"]),
         .library(name: "CoreKitReview", targets: ["CoreKitReview"]),
         .library(name: "CoreKitPersistence", targets: ["CoreKitPersistence"]),
+        .library(name: "CoreKitNetwork", targets: ["CoreKitNetwork"]),
         .library(name: "CoreKitTesting", targets: ["CoreKitTesting"]),
     ],
     dependencies: [
@@ -48,6 +49,7 @@ let package = Package(
         .target(name: "CoreKitStore"),
         .target(name: "CoreKitReview"),
         .target(name: "CoreKitPersistence"),
+        .target(name: "CoreKitNetwork"),
         .target(name: "CoreKitTesting", dependencies: ["CoreKitAnalytics", "CoreKitStore"]),
 
         .testTarget(name: "CoreKitTests", dependencies: ["CoreKit"]),
@@ -64,6 +66,7 @@ let package = Package(
         .testTarget(name: "CoreKitStoreTests", dependencies: ["CoreKitStore", "CoreKitTesting"]),
         .testTarget(name: "CoreKitReviewTests", dependencies: ["CoreKitReview"]),
         .testTarget(name: "CoreKitPersistenceTests", dependencies: ["CoreKitPersistence"]),
+        .testTarget(name: "CoreKitNetworkTests", dependencies: ["CoreKitNetwork"]),
         .testTarget(name: "CoreKitTestingTests", dependencies: ["CoreKitTesting"]),
     ]
 )
