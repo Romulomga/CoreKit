@@ -31,7 +31,8 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
 - `CoreKitPersistence`: `PersistentStore.open` devolve `.healthy` ou `.degraded`, nunca derruba o launch e nunca
   apaga o arquivo; `locationIsReachable` para o "Verificar de novo".
 - `CoreKitTesting`: `RecordingAnalyticsClient`, `FakeStoreGateway`, `FakeEntitlementMemory`, `eventually` (espera,
-  sem travar o main actor, o que chega à ViewModel por um fluxo), `ArchitectureCheck`/`ArchitectureRule` (um teste
+  sem travar o main actor, o que chega à ViewModel por um fluxo; o prazo conta voltas do main actor, não o relógio,
+  para não estourar quando as suítes rodam em paralelo), `ArchitectureCheck`/`ArchitectureRule` (um teste
   que lê o código do app e aponta arquivo e linha que fogem da arquitetura: objeto do banco numa View, pasta `Views/`).
 
 Só no iOS: `SessionObserver`, `ReloadNotifier`, `NavigationDiagnostics`, a barra de abas escondida no push, a
