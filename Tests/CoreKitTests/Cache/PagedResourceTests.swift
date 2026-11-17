@@ -72,8 +72,15 @@ import Testing
         await waitUntil { server.gate.waitingCount == 2 }
         #expect(!resource.list("list").isLoadingMore, "the restart let the next page go")
         // In a task of its own: a next page asked by mistake would wait at the closed gate and hang the test.
-        let asked = Task { await resource.loadMore("list") }
+        var askedDone = false
+        let asked = Task {
+            let failure = await resource.loadMore("list")
+            askedDone = true
+            return failure
+        }
 
+        // Either it returned at once (right) or it reached the closed gate (wrong): only then can the gate open.
+        await waitUntil { askedDone || server.gate.waitingCount == 3 }
         server.gate.release()
         #expect(await nextPage.value == nil, "a page let go says nothing")
         _ = await refreshing.value
