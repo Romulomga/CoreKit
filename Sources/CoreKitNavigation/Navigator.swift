@@ -92,8 +92,10 @@ public final class Navigator<D: NavigableDestination> {
 
     /// Shows `destination` from anywhere. A route without a tab goes on the bottom stack. A tab's route is selected
     /// and its stack goes to the route: the tab itself pops to its root, the screen already on top stays, a route
-    /// that `replacesStack` replaces the stack, anything else is pushed. A sheet or cover open on that stack is closed
-    /// first, and the push waits for the next turn so the two changes don't land in one frame.
+    /// that `replacesStack` replaces the stack, anything else is shown the way it says (`presentation`: pushed, or as a
+    /// sheet or cover, as the app shows it). A sheet or cover open on that stack is closed first, and the new route
+    /// waits for the next turn so the two changes don't land in one frame. A route without a tab goes on the bottom
+    /// stack, also the way it says.
     ///
     /// While links are held (`holdLinks(until:)`), a tab's route waits in `heldLink` and opens when they may; the bottom
     /// stack is what shows meanwhile, so its routes open at once.
@@ -118,6 +120,8 @@ public final class Navigator<D: NavigableDestination> {
         let land: @MainActor () -> Void = {
             if destination == tab {
                 stack.popToRoot()
+            } else if destination.presentation != .push {
+                stack.navigate(to: destination)
             } else if stack.currentDestination == destination {
                 return
             } else if destination.replacesStack {

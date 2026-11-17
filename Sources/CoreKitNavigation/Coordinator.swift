@@ -63,8 +63,10 @@ public final class Coordinator<D: NavigableDestination> {
     /// The modal slots need no such check: an equal value is no change to `@Observable` nor to
     /// `.sheet(item:)`, so the sheet already up stays as it is. A different one replaces it, which
     /// is how a deep link shows something over an open sheet.
-    public func navigate(to destination: D, type: NavigationType = .push) {
-        switch type {
+    ///
+    /// Without a `type`, the destination's own `presentation` (push unless it says otherwise).
+    public func navigate(to destination: D, type: NavigationType? = nil) {
+        switch type ?? destination.presentation {
         case .push:
             push(NavigationStep(destination: destination))
 

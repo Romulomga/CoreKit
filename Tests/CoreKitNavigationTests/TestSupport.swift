@@ -73,3 +73,14 @@ enum TabRoute: DeepLinkDestination, SessionDestination {
 final class Readiness {
     var isReady = false
 }
+
+/// An app whose editor shows as a sheet, the way the template's "+" opens it.
+enum SheetRoute: NavigableDestination {
+    case list, editor(Int)
+
+    var tab: SheetRoute? { .list }
+
+    var presentation: NavigationType {
+        if case .editor = self { .sheet } else { .push }
+    }
+}

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.7 - 2026-11-17
+
+- `CoreKitNavigation`: cada destino diz como aparece (`presentation`, novo em `NavigableDestination`: `.push` por
+  padrão, ou `.sheet`/`.fullScreenCover`). `Coordinator.navigate(to:)` sem `type` usa o dele, e `Navigator.open(_:)`
+  também: um deep link abre o editor como folha, do jeito que o app abre. Um `type` explícito continua valendo.
+
 ## 0.1.6 - 2026-11-17
 
 - `CoreKitNavigation`: `Navigator`, a navegação inteira do app num objeto só, gêmeo do `Navigator` do CoreKit-Android.

@@ -29,6 +29,10 @@ public protocol NavigableDestination: Hashable, Identifiable, SendableMetatype {
     /// the bottom stack (the auth flow, or the only stack). A tab's root returns itself.
     var tab: Self? { get }
 
+    /// How the destination shows when nothing says otherwise: `Coordinator.navigate(to:)` without a `type`, and
+    /// `Navigator.open(_:)` (a deep link opens it the way the app does). Push by default.
+    var presentation: NavigationType { get }
+
     /// A deep link to this destination replaces its tab's stack instead of pushing onto it (a conversation opened
     /// from a push, whose back should lead to the list, not to whatever was open).
     var replacesStack: Bool { get }
@@ -45,6 +49,8 @@ extension NavigableDestination {
     public var tab: Self? { nil }
 
     public var replacesStack: Bool { false }
+
+    public var presentation: NavigationType { .push }
 
     /// The route is its own identity: two equal routes are the same sheet or cover.
     public var id: Self { self }

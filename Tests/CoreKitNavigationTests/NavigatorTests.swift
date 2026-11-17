@@ -99,6 +99,26 @@ import Testing
         #expect(navigator.selection == .home, "nothing changed")
     }
 
+    @Test func aRouteOpensTheWayItSaysItShows() {
+        let navigator = Navigator<SheetRoute>(tab: .list)
+
+        navigator.open(.editor(1))
+
+        #expect(navigator.coordinator(for: .list).sheetDestination == .editor(1), "a deep link shows the editor as the app does")
+        #expect(navigator.isAtRoot(.list) == false)
+        #expect(navigator.coordinator(for: .list).pathCount == 0)
+    }
+
+    @Test func navigateWithoutATypeUsesThePresentation() {
+        let coordinator = Coordinator<SheetRoute>()
+
+        coordinator.navigate(to: .editor(2))
+        #expect(coordinator.sheetDestination == .editor(2))
+
+        coordinator.navigate(to: .editor(3), type: .push)
+        #expect(coordinator.destinations == [.editor(3)], "an explicit type still wins")
+    }
+
     // MARK: - Holding links
 
     @Test func aHeldLinkOpensWhenTheAppBecomesReady() async {
