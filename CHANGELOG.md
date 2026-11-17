@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.12 - 2026-11-17
+
+- `CoreKit`: blocos de cache para o assunto "online" (o dado é do servidor e só faz sentido com ele), vindos do Homer e
+  generalizados: `KeyedResource` (um valor por chave: carga idempotente, quem chama junto espera a mesma busca, a busca
+  sobrevive à tela, gravação e fim de sessão descartam a resposta velha), `PagedResource` (listas paginadas, sem
+  repetidos, nenhuma próxima página durante um reinício), `Loadable`/`LoadStatus`, `SingleKey`, `CacheRead`,
+  `SessionCache` com `values(_:)` e `SessionCaches` (o logout esvazia todos). A falha agora é do app: cada bloco recebe
+  `mapError: (any Error) -> Failure?`, e `nil` diz que foi um cancelamento da camada de rede do app, que nunca vira
+  falha. Gêmeos dos blocos do `core` do CoreKit-Android 0.1.11.
+- Os testes do módulo `CoreKit` passam a usar o `CoreKitTesting` (`eventually`).
+
 ## 0.1.11 - 2026-11-17
 
 - `CoreKitAnalytics`: `AnalyticsClient.setUserID(_:)` (quem usa o app, num app com conta; `nil` no logout),

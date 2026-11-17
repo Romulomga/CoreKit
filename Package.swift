@@ -52,7 +52,7 @@ let package = Package(
         .target(name: "CoreKitNetwork"),
         .target(name: "CoreKitTesting", dependencies: ["CoreKitAnalytics", "CoreKitStore"]),
 
-        .testTarget(name: "CoreKitTests", dependencies: ["CoreKit"]),
+        .testTarget(name: "CoreKitTests", dependencies: ["CoreKit", "CoreKitTesting"]),
         .testTarget(name: "CoreKitNavigationTests", dependencies: ["CoreKitNavigation"]),
         .testTarget(name: "CoreKitAnalyticsTests", dependencies: ["CoreKitAnalytics", "CoreKitTesting"]),
         .testTarget(

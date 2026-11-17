@@ -14,7 +14,9 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
   novo só se foi cancelada), `AsyncStream.map`, `SingleFlight`/`KeyedSingleFlight` (a ação que grava, envia ou
   exclui roda uma vez por vez; o segundo toque, dado enquanto a primeira ainda roda, é ignorado),
   `AsyncStream.observing` (o valor que uma leitura devolve agora e de novo a cada mudança observável que ela tocou,
-  sem repetidos: a tela recebe os dados do banco por valor, nunca o objeto do SwiftData).
+  sem repetidos: a tela recebe os dados do banco por valor, nunca o objeto do SwiftData),
+  e os blocos de cache de dado do servidor (`KeyedResource`, `PagedResource`, `SessionCache`, `SessionCaches`, com
+  `Loadable`/`LoadStatus`).
 - `CoreKitNavigation`: `Coordinator` (push, sheet, tela cheia; empilhar o destino que já está no topo não faz nada),
   `NavigationHost`, `RouteLink` (linha com o chevron nativo que passa pelas regras do coordinator),
   `Navigator` (a navegação inteira: a pilha de baixo e uma pilha por aba ou seção, criada sob demanda; `open` leva um
