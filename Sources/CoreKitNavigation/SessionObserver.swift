@@ -24,6 +24,9 @@ public final class SessionObserver<D: SessionDestination> {
 
     private let coverPresentationDelay: Duration
 
+    /// Runs with the reset after a logout, once the cover is gone (a `Navigator`'s tab stacks).
+    private var resetAfterLogout: (@MainActor () -> Void)?
+
     /// - Parameters:
     ///   - coordinator: The navigation coordinator to drive on state changes.
     ///   - isLoggedInStream: Emits `true` on login and `false` on logout.
@@ -70,13 +73,33 @@ public final class SessionObserver<D: SessionDestination> {
                     coordinator.dismissFullCover()
                     onLoggedOut()
 
-                    scheduleReset { coordinator in
+                    scheduleReset { [weak self] coordinator in
                         coordinator.dismissSheet()
                         coordinator.popToRoot()
+                        self?.resetAfterLogout?()
                     }
                 }
             }
         }
+    }
+
+    /// The same, on a `Navigator`: login presents `D.mainTab` over its bottom stack, and on logout the tab stacks go
+    /// too (`Navigator.reset()`, once the cover is gone, so the user never sees the tabs change), so the next session starts on the first tab with nothing pushed or held.
+    public convenience init(
+        navigator: Navigator<D>,
+        isLoggedInStream: AsyncStream<Bool>,
+        onLoggedIn: @escaping @MainActor @Sendable () -> Void = {},
+        onLoggedOut: @escaping @MainActor @Sendable () -> Void = {},
+        coverPresentationDelay: Duration = .milliseconds(600)
+    ) {
+        self.init(
+            coordinator: navigator.root,
+            isLoggedInStream: isLoggedInStream,
+            onLoggedIn: onLoggedIn,
+            onLoggedOut: onLoggedOut,
+            coverPresentationDelay: coverPresentationDelay
+        )
+        resetAfterLogout = { [weak navigator] in navigator?.reset() }
     }
 
     /// Runs `reset` without animation after the cover transition. A state change in the

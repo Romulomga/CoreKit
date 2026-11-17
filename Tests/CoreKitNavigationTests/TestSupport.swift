@@ -36,3 +36,40 @@ func waitUntil(sourceLocation: SourceLocation = #_sourceLocation, _ condition: (
     // Giving up is a failure here, not a silent go-ahead into a confusing expectation.
     if !condition() { Issue.record("waitUntil gave up before the condition held", sourceLocation: sourceLocation) }
 }
+
+/// A tab app with a bottom stack, declared the way Homer declares its own: two tabs, a pushed screen in each, a
+/// conversation that replaces its tab's stack, and a login screen on the bottom stack.
+enum TabRoute: DeepLinkDestination, SessionDestination {
+    case home, inbox, mainTab
+    case detail(Int)
+    case conversation(Int)
+    case login
+
+    var tab: TabRoute? {
+        switch self {
+        case .home, .detail: .home
+        case .inbox, .conversation: .inbox
+        case .login, .mainTab: nil
+        }
+    }
+
+    var replacesStack: Bool {
+        if case .conversation = self { true } else { false }
+    }
+
+    init?(url: URL) {
+        switch url.host() {
+        case "detail": self = .detail(Int(url.lastPathComponent) ?? 0)
+        case "conversation": self = .conversation(Int(url.lastPathComponent) ?? 0)
+        case "login": self = .login
+        default: return nil
+        }
+    }
+}
+
+/// An `@Observable` stand-in for the session a navigator holds links on.
+@MainActor
+@Observable
+final class Readiness {
+    var isReady = false
+}

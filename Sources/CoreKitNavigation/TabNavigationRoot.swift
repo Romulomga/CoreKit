@@ -7,6 +7,9 @@ public struct TabNavigationRoot<D: NavigableDestination, Content: View>: View {
 
     @State private var tabNavigation: TabNavigation<D>
 
+    /// Put in the environment for the tabs' `NavigationTab`s, when the root was built on one.
+    private let navigator: Navigator<D>?
+
     private let content: () -> Content
 
     private let animateSelection: Bool
@@ -18,7 +21,21 @@ public struct TabNavigationRoot<D: NavigableDestination, Content: View>: View {
     ) {
         self.content = content
         self.animateSelection = animateSelection
+        self.navigator = nil
         self._tabNavigation = State(initialValue: tabNavigation)
+    }
+
+    /// The tabs of a `Navigator`: its selection drives the `TabView`, and the navigator goes in the environment, where
+    /// each `NavigationTab` finds its stack.
+    public init(
+        _ navigator: Navigator<D>,
+        animateSelection: Bool = false,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.content = content
+        self.animateSelection = animateSelection
+        self.navigator = navigator
+        self._tabNavigation = State(initialValue: navigator.tabs)
     }
 
     public var body: some View {
@@ -35,5 +52,6 @@ public struct TabNavigationRoot<D: NavigableDestination, Content: View>: View {
         }
         .animation(animateSelection ? .easeInOut(duration: 0.25) : nil, value: tabNavigation.selection)
         .environment(tabNavigation)
+        .environment(navigator)
     }
 }

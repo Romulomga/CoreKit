@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.6 - 2026-11-17
+
+- `CoreKitNavigation`: `Navigator`, a navegação inteira do app num objeto só, gêmeo do `Navigator` do CoreKit-Android.
+  Tem a pilha de baixo (`root`: a entrada de um app com login, embaixo da cover das abas) e uma pilha por aba ou seção
+  da barra lateral, criada na primeira vez que é pedida. Cada destino diz onde mora (`tab`, novo em
+  `NavigableDestination`, `nil` por padrão = pilha de baixo), e `open(_:)` leva um destino, ou uma URL de um
+  `DeepLinkDestination` (`init?(url:)`), à pilha certa: troca de aba, a própria aba volta à raiz, a tela que já está no
+  topo fica, `replacesStack` troca a pilha, o resto empilha; uma folha aberta na aba fecha antes. `holdLinks(until:)`
+  segura os links de aba até o app estar pronto (observa a condição) e `discardHeldLink()` os descarta no fim da
+  sessão. `NavigationTab` monta uma aba (host, tag e ícone) e `TabNavigationRoot(navigator)` as abas, com o navigator
+  no ambiente. `SessionObserver(navigator:)` zera as abas depois do logout, com a cover já fechada. Tudo acréscimo: o
+  `Coordinator`, o `NavigationHost` e o `TabNavigation` avulsos continuam.
+
 ## 0.1.5 - 2026-11-17
 
 - `CoreKitTesting`: o `eventually` conta voltas em vez de olhar o relógio. Cada volta cede o main actor uma vez e dorme

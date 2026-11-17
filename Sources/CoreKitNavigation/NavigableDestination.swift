@@ -24,6 +24,14 @@ public protocol NavigableDestination: Hashable, Identifiable, SendableMetatype {
     /// usually ends in a third-party crash reporter, so a case whose value carries personal data
     /// (a name, an e-mail) returns a name without it.
     var routeName: String { get }
+
+    /// The tab or sidebar section whose stack this destination lives in, for `Navigator.open(_:)`; nil puts it on
+    /// the bottom stack (the auth flow, or the only stack). A tab's root returns itself.
+    var tab: Self? { get }
+
+    /// A deep link to this destination replaces its tab's stack instead of pushing onto it (a conversation opened
+    /// from a push, whose back should lead to the list, not to whatever was open).
+    var replacesStack: Bool { get }
 }
 
 extension NavigableDestination {
@@ -33,6 +41,10 @@ extension NavigableDestination {
     public var presentationDetent: Set<PresentationDetent> { [.large] }
 
     public var routeName: String { String(describing: id) }
+
+    public var tab: Self? { nil }
+
+    public var replacesStack: Bool { false }
 
     /// The route is its own identity: two equal routes are the same sheet or cover.
     public var id: Self { self }

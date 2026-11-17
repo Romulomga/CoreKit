@@ -17,6 +17,8 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
   sem repetidos: a tela recebe os dados do banco por valor, nunca o objeto do SwiftData).
 - `CoreKitNavigation`: `Coordinator` (push, sheet, tela cheia; empilhar o destino que já está no topo não faz nada),
   `NavigationHost`, `RouteLink` (linha com o chevron nativo que passa pelas regras do coordinator),
+  `Navigator` (a navegação inteira: a pilha de baixo e uma pilha por aba ou seção, criada sob demanda; `open` leva um
+  destino ou uma URL à pilha certa, segura links até o app estar pronto) com `NavigationTab`,
   `TabNavigation`/`TabNavigationRoot`, `ReloadNotifier`/`onReload`, `SessionObserver` (destinos
   `SessionDestination`), `NavigationDiagnostics`.
 - `CoreKitAnalytics`: `Analytics.start(engines:policy:)`, `Analytics.shared` (repassa a todos os motores),
