@@ -292,4 +292,23 @@ struct ProStoreTests {
 
         #expect(pro.state == .pro)
     }
+
+    // MARK: - Billing grace period
+
+    @Test func aSubscriberInTheBillingGracePeriodStaysPro() async {
+        gateway.entitlements = [
+            StoreTransaction(
+                id: 3,
+                productID: Plans.monthly.productID,
+                expirationDate: .now.addingTimeInterval(-day),
+                gracePeriodExpirationDate: .now.addingTimeInterval(6 * day)
+            )
+        ]
+
+        let store = makeStore()
+
+        await store.start()
+
+        #expect(store.state == .pro)
+    }
 }

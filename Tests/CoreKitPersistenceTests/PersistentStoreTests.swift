@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 import Testing
-import CoreKitPersistence
+@testable import CoreKitPersistence
 
 @Model
 final class Note {
@@ -175,5 +175,17 @@ final class PersistentStoreTests {
 
     private func fileNumber(of url: URL) throws -> Int? {
         try FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber] as? Int
+    }
+
+    /// CloudKit sync is the app's choice: SwiftData's default when it says nothing, off or a named container when it does.
+    @Test func theAppChoosesCloudKitSync() {
+        let schema = Schema(versionedSchema: NotesSchemaV1.self)
+        let file = StoreLocation.file(URL.temporaryDirectory.appending(path: "cloudkit-\(UUID().uuidString).store"))
+
+        let named = PersistentStore.configuration(for: file, schema: schema, cloudKitDatabase: .private("iCloud.example.notes"))
+        let off = PersistentStore.configuration(for: .standard, schema: schema, cloudKitDatabase: .none)
+
+        #expect(named.cloudKitContainerIdentifier == "iCloud.example.notes")
+        #expect(off.cloudKitContainerIdentifier == nil)
     }
 }

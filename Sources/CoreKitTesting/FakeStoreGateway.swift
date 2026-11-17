@@ -35,6 +35,9 @@ public final class FakeStoreGateway: StoreGateway {
 
     public private(set) var finished: [UInt64] = []
 
+    /// The `appAccountToken` of each purchase, in order (`nil` when none was given).
+    public private(set) var purchaseAccountTokens: [UUID?] = []
+
     public private(set) var entitlementQueries = 0
 
     public private(set) var productQueries = 0
@@ -80,6 +83,12 @@ public final class FakeStoreGateway: StoreGateway {
     }
 
     public func purchase(_ product: ProProduct) async throws -> StorePurchaseResult {
+        try await purchase(product, appAccountToken: nil)
+    }
+
+    public func purchase(_ product: ProProduct, appAccountToken: UUID?) async throws -> StorePurchaseResult {
+        purchaseAccountTokens.append(appAccountToken)
+
         if let purchaseError { throw purchaseError }
 
         return nextPurchase

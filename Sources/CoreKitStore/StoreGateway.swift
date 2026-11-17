@@ -21,6 +21,10 @@ public protocol StoreGateway {
     /// transaction it returned.
     func purchase(_ product: ProProduct) async throws -> StorePurchaseResult
 
+    /// The same, tied to the app's account: `appAccountToken` reaches the transaction and the App Store Server
+    /// Notifications, so a server knows whose purchase it was. A gateway that doesn't implement it ignores the token.
+    func purchase(_ product: ProProduct, appAccountToken: UUID?) async throws -> StorePurchaseResult
+
     /// Tells StoreKit the content was delivered. An unfinished transaction is delivered again on every launch.
     func finish(_ transaction: StoreTransaction) async
 
@@ -30,6 +34,12 @@ public protocol StoreGateway {
     /// `Transaction.updates`: renewals, refunds, approved Ask to Buy, purchases made on another device or outside the
     /// app, and the unfinished ones from an earlier launch.
     func transactionUpdates() -> AsyncStream<StoreTransaction>
+}
+
+extension StoreGateway {
+    public func purchase(_ product: ProProduct, appAccountToken: UUID?) async throws -> StorePurchaseResult {
+        try await purchase(product)
+    }
 }
 
 /// How the purchase sheet ended, as StoreKit says it.

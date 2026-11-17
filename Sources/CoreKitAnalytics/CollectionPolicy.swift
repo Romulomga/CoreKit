@@ -10,14 +10,35 @@ public struct CollectionPolicy: Sendable {
     /// DebugView). Never a run launched with `--uitests`, in any build.
     public static let storeBuildsOnly = CollectionPolicy()
 
-    static let debugArgument = "--analytics-debug"
-    static let automationArgument = "--uitests"
+    public static let defaultDebugArgument = "--analytics-debug"
+
+    public static let defaultAutomationArguments: Set<String> = ["--uitests"]
+
+    /// A debug build collects without being asked (an app whose testers run debug builds).
+    public let debugBuildsCollect: Bool
+
+    /// The launch argument that makes a debug build collect, to trace events.
+    public let debugArgument: String
+
+    /// Launch arguments of an automated run, which never collects in any build.
+    public let automationArguments: Set<String>
+
+    /// Each choice an app may make, with `storeBuildsOnly`'s behaviour as the default.
+    public init(
+        debugBuildsCollect: Bool = false,
+        debugArgument: String = CollectionPolicy.defaultDebugArgument,
+        automationArguments: Set<String> = CollectionPolicy.defaultAutomationArguments
+    ) {
+        self.debugBuildsCollect = debugBuildsCollect
+        self.debugArgument = debugArgument
+        self.automationArguments = automationArguments
+    }
 
     func allowsCollection(in launch: LaunchContext) -> Bool {
-        guard !launch.arguments.contains(Self.automationArgument) else { return false }
+        guard automationArguments.isDisjoint(with: launch.arguments) else { return false }
 
         if launch.isDebugBuild {
-            return launch.arguments.contains(Self.debugArgument)
+            return debugBuildsCollect || launch.arguments.contains(debugArgument)
         }
 
         return true

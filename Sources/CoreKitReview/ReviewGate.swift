@@ -18,7 +18,8 @@ public struct ReviewGate {
     private let now: () -> Date
 
     /// - Parameters:
-    ///   - versionKey: where the version of the last request is kept (a string).
+    ///   - versionKey: where the version of the last request is kept (a string). An app that already
+    ///     asked under its own keys passes them; a new app can keep the defaults.
     ///   - dateKey: where the date of the last request is kept. Read as a `Date` or as seconds since 1970,
     ///     the two shapes the apps stored before the gate; written as a `Date`.
     ///   - minDaysBetween: the least number of days between two requests, even across versions. `0` leaves
@@ -27,8 +28,8 @@ public struct ReviewGate {
     ///     build of the same version must not ask again.
     public init(
         defaults: UserDefaults = .standard,
-        versionKey: String,
-        dateKey: String,
+        versionKey: String = "corekit.review.lastPromptVersion",
+        dateKey: String = "corekit.review.lastPromptDate",
         minDaysBetween: Int = 0,
         currentVersion: String = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "",
         now: @escaping () -> Date = { Date() }

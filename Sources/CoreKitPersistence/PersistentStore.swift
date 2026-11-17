@@ -53,6 +53,9 @@ public enum PersistentStore {
     ///     without its stages. Ignored for `.inMemory`, which has nothing stored to migrate.
     ///   - location: where the file lives. Resolved inside the guarded open, so a location that can't be
     ///     resolved (an app group gone missing) is a degraded store, not a crash.
+    ///   - cloudKitDatabase: whether the store syncs through CloudKit. `.automatic` (SwiftData's own
+    ///     default) syncs when the app has the iCloud entitlement; `.none` never does; `.private(_:)`
+    ///     names the container.
     ///   - forceDegraded: returns `.degraded` without building a container or resolving the location. The
     ///     recovery screen only shows in a rare state of the device; without a way to force it, it would be UI
     ///     nobody ever saw run. The app maps its own debug launch argument here.
@@ -60,6 +63,7 @@ public enum PersistentStore {
         _ versionedSchema: any VersionedSchema.Type,
         migrationPlan: (any SchemaMigrationPlan.Type)?,
         location: @autoclosure () throws -> StoreLocation = .standard,
+        cloudKitDatabase: ModelConfiguration.CloudKitDatabase = .automatic,
         forceDegraded: Bool = false
     ) -> StoreOpening {
         do {
@@ -71,7 +75,7 @@ public enum PersistentStore {
             let container = try ModelContainer(
                 for: schema,
                 migrationPlan: location.isInMemory ? nil : migrationPlan,
-                configurations: configuration(for: location, schema: schema)
+                configurations: configuration(for: location, schema: schema, cloudKitDatabase: cloudKitDatabase)
             )
 
             return .healthy(container)
@@ -108,12 +112,16 @@ public enum PersistentStore {
     // MARK: - Configuration
 
     /// The same configuration for opening and for checking, so the check always looks at the file `open` used.
-    private static func configuration(for location: StoreLocation, schema: Schema) -> ModelConfiguration {
+    static func configuration(
+        for location: StoreLocation,
+        schema: Schema,
+        cloudKitDatabase: ModelConfiguration.CloudKitDatabase = .automatic
+    ) -> ModelConfiguration {
         switch location {
         case .standard:
-            ModelConfiguration(schema: schema)
+            ModelConfiguration(schema: schema, cloudKitDatabase: cloudKitDatabase)
         case .file(let url):
-            ModelConfiguration(schema: schema, url: url)
+            ModelConfiguration(schema: schema, url: url, cloudKitDatabase: cloudKitDatabase)
         case .inMemory:
             ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         }

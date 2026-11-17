@@ -89,4 +89,17 @@ struct ProStorePurchaseTests {
         #expect(await store.restore())
         #expect(store.state == .pro)
     }
+
+    /// An app with accounts ties the purchase to the user, so its server knows whose it was.
+    @Test func theAccountTokenReachesThePurchase() async {
+        let store = await startedStore()
+        let account = UUID()
+
+        gateway.nextPurchase = .success(transaction(Plans.yearly, id: 7))
+
+        _ = await store.purchase(product(Plans.yearly, price: 49.9), appAccountToken: account)
+        _ = await store.purchase(product(Plans.yearly, price: 49.9))
+
+        #expect(gateway.purchaseAccountTokens == [account, nil])
+    }
 }

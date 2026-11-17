@@ -83,4 +83,22 @@ struct ProStoreProductsTests {
 
         #expect(gateway.productQueries == 1)
     }
+
+    @Test func anAppCanKeepItsOwnPlanOrder() async {
+        let store = ProStore(plans: Plans.all, memory: FakeEntitlementMemory(), gateway: gateway, productOrder: .asPlanned)
+
+        gateway.products = [product(Plans.lifetime, price: 99.9), product(Plans.yearly, price: 49.9), product(Plans.monthly, price: 9.9)]
+
+        await store.loadProducts()
+
+        #expect(store.products.map(\.plan) == [Plans.monthly, Plans.yearly, Plans.lifetime])
+
+        let byPrice = ProStore(plans: [Plans.lifetime, Plans.monthly], memory: FakeEntitlementMemory(), gateway: gateway, productOrder: .asPlanned)
+
+        gateway.products = [product(Plans.monthly, price: 9.9), product(Plans.lifetime, price: 99.9)]
+
+        await byPrice.loadProducts()
+
+        #expect(byPrice.products.map(\.plan) == [Plans.lifetime, Plans.monthly])
+    }
 }

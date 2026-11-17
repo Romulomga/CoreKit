@@ -11,7 +11,8 @@ struct EntitlementResolver: Sendable {
         plans.first { $0.productID == productID }
     }
 
-    /// One of the app's plans, not refunded, not superseded by an upgrade, and (a subscription) not run out.
+    /// One of the app's plans, not refunded, not superseded by an upgrade, and (a subscription) not run out, counting
+    /// the billing grace period.
     func entitles(_ transaction: StoreTransaction, at now: Date) -> Bool {
         guard let plan = plan(for: transaction.productID), !transaction.isRevoked, !transaction.isUpgraded else {
             return false
@@ -19,7 +20,7 @@ struct EntitlementResolver: Sendable {
 
         switch plan.type {
         case .lifetime: return true
-        case .subscription: return (transaction.expirationDate ?? .distantPast) > now
+        case .subscription: return (transaction.entitledUntil ?? .distantPast) > now
         }
     }
 
@@ -31,7 +32,7 @@ struct EntitlementResolver: Sendable {
             return .lifetime
         }
 
-        if let expires = entitling.compactMap(\.expirationDate).max() {
+        if let expires = entitling.compactMap(\.entitledUntil).max() {
             return .subscription(expires: expires)
         }
 
@@ -53,7 +54,7 @@ struct EntitlementResolver: Sendable {
         // A refund of an older period (one that ended before the remembered one) says nothing about it.
         case .subscription(let expires):
             return revoked.contains {
-                plan(for: $0.productID)?.type == .subscription && ($0.expirationDate ?? .distantPast) >= expires
+                plan(for: $0.productID)?.type == .subscription && ($0.entitledUntil ?? .distantPast) >= expires
             }
         }
     }

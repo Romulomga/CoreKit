@@ -90,7 +90,7 @@ final class AnalyticsHub: AnalyticsClient {
         guard policy.allowsCollection(in: launch) else {
             engines.forEach { $0.stayOff() }
 
-            analyticsLog.notice("Analytics off in this build (launch with \(CollectionPolicy.debugArgument, privacy: .public) to trace events)")
+            analyticsLog.notice("Analytics off in this build (launch with \(policy.debugArgument, privacy: .public) to trace events)")
             return
         }
 

@@ -97,4 +97,15 @@ final class ReviewGateTests {
         #expect(ReviewGate.isEligible(currentVersion: "1.1", lastPromptVersion: "1.0", lastPromptAt: old, now: now, minDaysBetween: 90))
         #expect(ReviewGate.isEligible(currentVersion: "1.1", lastPromptVersion: "1.0", lastPromptAt: now, now: now, minDaysBetween: 0))
     }
+
+    @Test func aNewAppCanKeepTheDefaultKeys() {
+        let gate = ReviewGate(defaults: defaults, currentVersion: "2.0", now: { self.now })
+
+        #expect(gate.isEligible)
+
+        gate.markRequested()
+
+        #expect(!gate.isEligible)
+        #expect(defaults.string(forKey: "corekit.review.lastPromptVersion") == "2.0")
+    }
 }

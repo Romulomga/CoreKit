@@ -29,6 +29,15 @@ public struct ProPlan: Sendable, Hashable {
 
 // MARK: - Products
 
+/// The order of the plans on sale.
+public enum ProductOrder: Sendable, Hashable {
+    /// Cheapest first.
+    case byPrice
+
+    /// As the app listed its plans.
+    case asPlanned
+}
+
 /// The catalog load, so the paywall shows a spinner, an error with "try again", or the plans.
 public enum ProductsState: Sendable, Hashable {
     case loading
@@ -182,6 +191,16 @@ public struct StoreTransaction: Sendable, Equatable {
     /// Superseded by a higher tier in the same group: the new tier carries the access.
     public let isUpgraded: Bool
 
+    /// When the billing grace period ends, for a subscription whose renewal failed and that Apple keeps entitled while
+    /// it retries the charge (the App Store Connect "Billing Grace Period" setting). `expirationDate` is already past
+    /// then, and StoreKit still lists the transaction in `currentEntitlements`.
+    public let gracePeriodExpirationDate: Date?
+
+    /// Until when this transaction entitles: the grace period's end when there is one, else `expirationDate`.
+    public var entitledUntil: Date? {
+        [expirationDate, gracePeriodExpirationDate].compactMap { $0 }.max()
+    }
+
     /// What was actually charged, which may differ from the listed price (an introductory or promotional offer, another
     /// storefront). `nil` when StoreKit doesn't say.
     public let price: Decimal?
@@ -202,6 +221,7 @@ public struct StoreTransaction: Sendable, Equatable {
         expirationDate: Date? = nil,
         revocationDate: Date? = nil,
         isUpgraded: Bool = false,
+        gracePeriodExpirationDate: Date? = nil,
         price: Decimal? = nil,
         currencyCode: String? = nil,
         transaction: Transaction? = nil
@@ -212,12 +232,13 @@ public struct StoreTransaction: Sendable, Equatable {
         self.expirationDate = expirationDate
         self.revocationDate = revocationDate
         self.isUpgraded = isUpgraded
+        self.gracePeriodExpirationDate = gracePeriodExpirationDate
         self.price = price
         self.currencyCode = currencyCode
         self.transaction = transaction
     }
 
-    public init(_ transaction: Transaction) {
+    public init(_ transaction: Transaction, gracePeriodExpirationDate: Date? = nil) {
         self.init(
             id: transaction.id,
             productID: transaction.productID,
@@ -225,6 +246,7 @@ public struct StoreTransaction: Sendable, Equatable {
             expirationDate: transaction.expirationDate,
             revocationDate: transaction.revocationDate,
             isUpgraded: transaction.isUpgraded,
+            gracePeriodExpirationDate: gracePeriodExpirationDate,
             price: transaction.price,
             currencyCode: transaction.currency?.identifier,
             transaction: transaction

@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.1.10 - 2026-11-17
+
+Portas abertas pela regra nova (o que um app qualquer precisaria), todas com o comportamento de antes como padrão:
+
+- `CoreKitAnalytics`: `CollectionPolicy` ganhou `init(debugBuildsCollect:debugArgument:automationArguments:)`; antes
+  só existia `.storeBuildsOnly`, com os argumentos fixos.
+- `CoreKitNavigation`: `NavigationDiagnostics.addObserver(_:)`/`removeObserver(_:)`, para mais de um ouvinte (analytics e
+  um crash reporter); `observe(_:)` continua trocando o principal.
+- `CoreKitStore`: `ProStore.purchase(_:appAccountToken:)` liga a compra à conta do app (o servidor a recebe nas App Store
+  Server Notifications); `StoreGateway` ganhou o requisito com implementação padrão que ignora o token, e o
+  `FakeStoreGateway` registra `purchaseAccountTokens`. `ProStore(productOrder:)`: `.byPrice` (padrão) ou `.asPlanned`.
+- `CoreKitReview`: `ReviewGate` com chaves padrão (`corekit.review.lastPromptVersion`/`lastPromptDate`) para app novo.
+- `CoreKitPersistence`: `PersistentStore.open(…, cloudKitDatabase:)`; `.automatic` (o padrão do SwiftData, que já era o
+  usado) sincroniza quando o app tem o iCloud, `.none` nunca, `.private(_:)` nomeia o contêiner.
+
+Correção:
+
+- `CoreKitStore`: assinante no período de carência da cobrança perdia o Pro. Com o "Billing Grace Period" ligado, a Apple
+  mantém o direito enquanto tenta cobrar de novo, e o `currentEntitlements` lista a transação com a validade já vencida;
+  o resolvedor exigia validade futura. `StoreTransaction.gracePeriodExpirationDate` (lido do status da assinatura só
+  quando a validade já passou) e `entitledUntil` entram na regra; o direito lembrado vence no fim da carência.
+
 ## 0.1.9 - 2026-11-17
 
 - `CoreKitNetwork` (novo produto): o `NetworkKit` do Homer, generalizado para qualquer app com servidor. Mesmo

@@ -84,6 +84,8 @@ public final class ProStore: Entitlement {
 
     @ObservationIgnored private let resolveTimeout: Duration
 
+    @ObservationIgnored private let productOrder: ProductOrder
+
     /// The last right StoreKit confirmed, as `memory` holds it.
     @ObservationIgnored private var confirmed: EntitlementKind?
 
@@ -105,13 +107,16 @@ public final class ProStore: Entitlement {
     ///   - plans: the app's Pro plans. Transactions for any other product are ignored.
     ///   - memory: where the confirmed right is kept between launches.
     ///   - resolveTimeout: how long a launch with nothing remembered waits for StoreKit before going on as free.
+    ///   - productOrder: the order of `products`: by price (the default) or as `plans` lists them.
     public init(
         plans: [ProPlan],
         memory: any EntitlementMemory,
         gateway: any StoreGateway = StoreKitGateway(),
         observer: (any ProStoreObserver)? = nil,
-        resolveTimeout: Duration = .seconds(3)
+        resolveTimeout: Duration = .seconds(3),
+        productOrder: ProductOrder = .byPrice
     ) {
+        self.productOrder = productOrder
         self.gateway = gateway
         self.memory = memory
         self.observer = observer
@@ -211,11 +216,14 @@ public final class ProStore: Entitlement {
     // MARK: - Purchase and restore
 
     /// Shows the purchase sheet and returns how it ended. Only a verified purchase grants Pro.
-    public func purchase(_ product: ProProduct) async -> PurchaseOutcome {
+    ///
+    /// - Parameter appAccountToken: the app's account (an app with sign-in and a server), carried by the transaction
+    ///   so the server knows whose purchase it was. `nil` for an app without accounts.
+    public func purchase(_ product: ProProduct, appAccountToken: UUID? = nil) async -> PurchaseOutcome {
         let startedAt = Date.now
 
         do {
-            switch try await gateway.purchase(product) {
+            switch try await gateway.purchase(product, appAccountToken: appAccountToken) {
             case .success(let transaction):
                 await refresh(evidence: transaction)
                 await gateway.finish(transaction)
@@ -353,13 +361,27 @@ public final class ProStore: Entitlement {
         observer?.onProKeptWithoutAnswer(source: source)
     }
 
+    private func ordered(_ loaded: [ProProduct]) -> [ProProduct] {
+        switch productOrder {
+        case .byPrice:
+            loaded.sorted { $0.price < $1.price }
+
+        case .asPlanned:
+            loaded.sorted { position(of: $0) < position(of: $1) }
+        }
+    }
+
+    private func position(of product: ProProduct) -> Int {
+        resolver.plans.firstIndex { $0.productID == product.plan.productID } ?? .max
+    }
+
     private func fetchProducts() async {
         if products.isEmpty { productsState = .loading }
 
         let answer = await gateway.products(for: resolver.plans)
 
         if !answer.products.isEmpty {
-            products = answer.products.sorted { $0.price < $1.price }
+            products = ordered(answer.products)
         }
 
         productsState = products.isEmpty ? .failed : .loaded

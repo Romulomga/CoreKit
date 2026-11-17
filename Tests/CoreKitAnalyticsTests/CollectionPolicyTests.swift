@@ -27,4 +27,21 @@ struct CollectionPolicyTests {
     @Test func thisTestRunIsADebugBuild() {
         #expect(LaunchContext.current.isDebugBuild)
     }
+
+    // MARK: - What the app chooses
+
+    @Test func anAppCanLetItsDebugBuildsCollect() {
+        let policy = CollectionPolicy(debugBuildsCollect: true)
+
+        #expect(policy.allowsCollection(in: LaunchContext(isDebugBuild: true, arguments: [])))
+        #expect(!policy.allowsCollection(in: LaunchContext(isDebugBuild: true, arguments: ["--uitests"])))
+    }
+
+    @Test func anAppNamesItsOwnArguments() {
+        let policy = CollectionPolicy(debugArgument: "--trace", automationArguments: ["--ui-run", "--snapshots"])
+
+        #expect(policy.allowsCollection(in: LaunchContext(isDebugBuild: true, arguments: ["--trace"])))
+        #expect(!policy.allowsCollection(in: LaunchContext(isDebugBuild: true, arguments: ["--analytics-debug"])))
+        #expect(!policy.allowsCollection(in: LaunchContext(isDebugBuild: false, arguments: ["--snapshots"])))
+    }
 }

@@ -72,4 +72,19 @@ struct EntitlementResolverTests {
         #expect(!EntitlementResolver.isAlreadyOwned(purchaseDate: now + 20, purchaseStartedAt: now))
         #expect(!EntitlementResolver.isAlreadyOwned(purchaseDate: now - 600, purchaseStartedAt: now))
     }
+
+    /// A renewal that failed: Apple keeps the subscriber entitled during the billing grace period, while the period
+    /// itself already ended.
+    @Test func theBillingGracePeriodStillEntitles() {
+        let inGrace = StoreTransaction(
+            id: 1,
+            productID: Plans.monthly.productID,
+            expirationDate: now - day,
+            gracePeriodExpirationDate: now + 6 * day
+        )
+
+        #expect(resolver.entitles(inGrace, at: now))
+        #expect(resolver.resolve([inGrace], at: now) == .subscription(expires: now + 6 * day))
+        #expect(!resolver.entitles(inGrace, at: now + 7 * day))
+    }
 }
