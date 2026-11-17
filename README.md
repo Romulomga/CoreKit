@@ -43,6 +43,13 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
   nunca grava credencial onde ela sobrevive à sessão (cabeçalhos mascarados, `URLRedaction`). Tudo o que um app pode
   querer escolher é parâmetro: tempos limite, cabeçalho do token, interceptadores próprios (`NetworkInterceptor`),
   logger próprio (`NetworkLogger`), cabeçalhos e trechos de URL mascarados.
+- `CoreKitSync`: o assunto guardado no banco do aparelho e sincronizado com um servidor (offline-first). O app
+  implementa o `SyncSubject` (`pull` desde o cursor, `apply` que grava dados e cursor num save só, `push`) e a fila
+  (`Outbox`, tabela do app, gravada na mesma transação do registro); o `SyncEngine` dá as regras: um sync por vez,
+  envio antes da leitura, da mais antiga para a mais nova, reenvio com o mesmo id e espera crescente (`SyncRetry`),
+  recusa que segura as mudanças seguintes do registro, leitura que não pisa em envio pendente (`ConflictPolicy`), o
+  estado para a tela (`SyncStatus`) e `reset()` no logout. `BackgroundSync` registra o segundo plano só quando o
+  `Info.plist` tem as duas chaves (sem elas, registrar derrubaria o app).
 - `CoreKitTesting`: `RecordingAnalyticsClient`, `FakeStoreGateway`, `FakeEntitlementMemory`, `eventually` (espera,
   sem travar o main actor, o que chega à ViewModel por um fluxo; o prazo conta voltas do main actor, não o relógio,
   para não estourar quando as suítes rodam em paralelo), `ArchitectureCheck`/`ArchitectureRule` (um teste

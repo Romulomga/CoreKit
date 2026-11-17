@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.13 - 2026-11-17
+
+- `CoreKitSync` (novo módulo): o sync de um assunto offline-first. `SyncSubject` (o que o app implementa: `pull(since:)`
+  devolve um `PullBatch`, de mudanças ou a lista inteira, paginado por `hasMore`; `apply(_:keeping:state:)` grava dados
+  e `SyncState` num save só; `push(_:)` devolve `PushOutcome`), `Outbox` e `PendingChange` (a fila, tabela do app, com
+  id gerado no aparelho como chave de idempotência e lápide para remoção), `SyncEngine` (um sync por vez, quem chama
+  junto espera a mesma rodada; envia antes de ler; uma falha no caminho para a rodada, conta a tentativa e agenda outra
+  com `SyncRetry`; uma recusa segura as mudanças seguintes do registro até o app resolver; com `ConflictPolicy`
+  `.pendingWins`, o padrão, a leitura não toca no registro com envio esperando, com `.serverWins` o servidor
+  substitui e a fila do registro sai; `syncIfStale`, `pushPending`, `follow(connectivity:)`; `SyncStatus` observável;
+  `reset()` no logout) e `BackgroundSync` (sobre `BGTaskScheduler`, atrás de `BackgroundScheduling`; confere
+  `UIBackgroundModes` `fetch` e `BGTaskSchedulerPermittedIdentifiers` antes de registrar, agenda a próxima a cada
+  rodada e cancela a que o sistema toma de volta). Gêmeo do módulo `sync` do CoreKit-Android 0.1.12. O envio só foi
+  provado contra dublês: o primeiro app com servidor é o primeiro uso real.
+
 ## 0.1.12 - 2026-11-17
 
 - `CoreKit`: blocos de cache para o assunto "online" (o dado é do servidor e só faz sentido com ele), vindos do Homer e
