@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.5 - 2026-11-17
+
+- `CoreKitTesting`: o `eventually` conta voltas em vez de olhar o relógio. Cada volta cede o main actor uma vez e dorme
+  10 ms; o `timeout` compra `timeout / 10 ms` voltas (com o main actor livre, desiste depois de mais ou menos
+  `timeout`, como antes). Com o prazo de relógio de 2 s, o teste falhava ao acaso quando as suítes `@MainActor`
+  rodavam em paralelo: a espera ficava segundos sem vez no main actor e, quando voltava, o prazo tinha passado, com o
+  valor já na fila. Novo parâmetro `ceiling` (30 s por padrão), só como rede de segurança. A assinatura antiga
+  continua valendo.
+
 ## 0.1.4 - 2026-11-16
 
 - `CoreKit`: `AsyncStream.observing { leitura }`, o valor que a leitura devolve agora e de novo a cada mudança
