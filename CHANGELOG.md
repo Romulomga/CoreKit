@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.8 - 2026-11-17
+
+- `CoreKitAnalytics`: a chave do usuário ("Enviar estatísticas" nos Ajustes), `Analytics.setCollectionEnabled(_:)`,
+  vale para todos os motores de uma vez. Chamada antes do `start` com a escolha salva: desligada, nenhum motor é
+  configurado e nada sai do aparelho, nem os eventos da abertura; ligada depois, os motores começam ali; desligada com
+  os motores rodando, cada um desliga a coleta do seu SDK (Firebase Analytics + Crashlytics, opt-out do Mixpanel) e
+  nada mais é repassado; ligada de novo, voltam sem ser configurados outra vez. A política do build continua mandando:
+  build de debug nunca coleta. `AnalyticsEngine` ganha `setCollectionEnabled` (padrão: nada) e `AnalyticsClient` o
+  requisito `setCollectionEnabled(_:)` com implementação vazia por padrão: acréscimo, nada quebra.
+- `CoreKitAnalytics`: `recordError` pelo `Analytics.shared` leva só o domínio e o código do erro; a mensagem e o resto
+  do `userInfo` (que podem citar o que o usuário digitou) ficam no aparelho.
+- `CoreKitMixpanel`: ao começar, desfaz um opt-out que ficou de uma abertura anterior (o Mixpanel o guarda no
+  aparelho), como o Firebase já fazia com a coleta.
+- `CoreKitTesting`: `RecordingAnalyticsClient` registra a chave (`collectionChanges`, `collectionEnabled`).
+
 ## 0.1.7 - 2026-11-17
 
 - `CoreKitNavigation`: cada destino diz como aparece (`presentation`, novo em `NavigableDestination`: `.push` por

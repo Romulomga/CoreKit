@@ -19,6 +19,8 @@ public protocol AnalyticsClient: Sendable {
     func setUserProperty(_ value: String?, forName name: String)
 
     /// A non-fatal error for the crash reporter, with an optional breadcrumb of where it happened.
+    /// `Analytics.shared` sends only the error's domain and code: its message may quote the user's
+    /// data.
     func recordError(_ error: any Error, context: String?)
 
     /// A completed StoreKit 2 purchase as the App Store's own revenue event (`in_app_purchase` in
@@ -33,6 +35,17 @@ public protocol AnalyticsClient: Sendable {
     /// Firebase), apart from the app's funnel events. The twin of CoreKit-Android's `logPurchase`.
     /// Use it or `logTransaction`, never both for one sale.
     func logPurchase(_ purchase: PurchaseRevenue)
+
+    /// The user's switch ("Enviar estatísticas" in Ajustes). `Analytics.shared` stops or resumes
+    /// every engine; a client that doesn't collect ignores it.
+    @MainActor
+    func setCollectionEnabled(_ enabled: Bool)
+}
+
+extension AnalyticsClient {
+    /// An engine's client is switched through its `AnalyticsEngine`, not here.
+    @MainActor
+    public func setCollectionEnabled(_ enabled: Bool) {}
 }
 
 /// A confirmed sale. The value goes in cents: no floating point on the money path until the engine

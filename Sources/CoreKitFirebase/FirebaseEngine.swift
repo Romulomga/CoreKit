@@ -43,6 +43,9 @@ extension AnalyticsEngine {
 
             FirebaseAnalytics.Analytics.setAnalyticsCollectionEnabled(false)
             Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(false)
+        } setCollectionEnabled: { enabled in
+            FirebaseAnalytics.Analytics.setAnalyticsCollectionEnabled(enabled)
+            Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(enabled)
         }
     }
 }

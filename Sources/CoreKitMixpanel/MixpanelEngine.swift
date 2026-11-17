@@ -17,9 +17,23 @@ extension AnalyticsEngine {
                 return nil
             }
 
-            Mixpanel.initialize(token: token, trackAutomaticEvents: true, flushInterval: flushInterval)
+            let mixpanel = Mixpanel.initialize(token: token, trackAutomaticEvents: true, flushInterval: flushInterval)
+
+            // The opt-out persists on the device: a user who switched collection off and back on
+            // in an earlier launch would otherwise stay silent.
+            if mixpanel.hasOptedOutTracking() {
+                mixpanel.optInTracking()
+            }
 
             return MixpanelAnalyticsClient()
+        } setCollectionEnabled: { enabled in
+            let mixpanel = Mixpanel.mainInstance()
+
+            if enabled {
+                mixpanel.optInTracking()
+            } else {
+                mixpanel.optOutTracking()
+            }
         }
     }
 }

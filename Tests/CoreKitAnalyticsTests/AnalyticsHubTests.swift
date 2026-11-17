@@ -81,6 +81,95 @@ struct AnalyticsHubTests {
         #expect(spy.client.events.isEmpty)
     }
 
+    // MARK: - The user's switch
+
+    @Test func switchedOffBeforeStartNoEngineIsSetUp() {
+        let spy = EngineSpy()
+        let hub = AnalyticsHub()
+
+        hub.setCollectionEnabled(false)
+        hub.start(engines: [spy.engine], policy: .storeBuildsOnly, launch: storeBuild)
+        hub.log("first_open", parameters: [:])
+
+        #expect(spy.starts == 0, "nothing leaves the device, not even the launch events")
+        #expect(spy.stayOffs == 1)
+        #expect(!hub.isCollecting)
+        #expect(spy.client.events.isEmpty)
+    }
+
+    @Test func switchedOnLaterTheEnginesStartThen() {
+        let spy = EngineSpy()
+        let hub = AnalyticsHub()
+
+        hub.setCollectionEnabled(false)
+        hub.start(engines: [spy.engine], policy: .storeBuildsOnly, launch: storeBuild)
+        hub.setCollectionEnabled(true)
+        hub.log("document_issued", parameters: [:])
+
+        #expect(spy.starts == 1)
+        #expect(spy.client.eventNames == ["document_issued"])
+    }
+
+    @Test func switchedOffWhileRunningEveryEngineStopsAndComesBack() {
+        let firebase = EngineSpy()
+        let mixpanel = EngineSpy()
+        let hub = AnalyticsHub()
+
+        hub.start(engines: [firebase.engine, mixpanel.engine], policy: .storeBuildsOnly, launch: storeBuild)
+        hub.setCollectionEnabled(false)
+        hub.log("while_off", parameters: [:])
+        hub.screen("while_off")
+        hub.setCollectionEnabled(true)
+        hub.log("back_on", parameters: [:])
+
+        for spy in [firebase, mixpanel] {
+            #expect(spy.switches == [false, true], "each SDK switches its own collection")
+            #expect(spy.starts == 1, "a running engine is not set up again")
+            #expect(spy.client.eventNames == ["back_on"])
+            #expect(spy.client.screens.isEmpty)
+        }
+    }
+
+    @Test func anEngineThatDidntStartIsNotSwitched() {
+        let running = EngineSpy()
+        let withoutKey = EngineSpy(starts: false)
+        let hub = AnalyticsHub()
+
+        hub.start(engines: [withoutKey.engine, running.engine], policy: .storeBuildsOnly, launch: storeBuild)
+        hub.setCollectionEnabled(false)
+
+        #expect(withoutKey.switches.isEmpty, "an SDK never set up can trap when called")
+        #expect(running.switches == [false])
+    }
+
+    @Test func theBuildsPolicyWinsOverTheSwitch() {
+        let spy = EngineSpy()
+        let hub = AnalyticsHub()
+
+        hub.start(engines: [spy.engine], policy: .storeBuildsOnly, launch: debugBuild)
+        hub.setCollectionEnabled(false)
+        hub.setCollectionEnabled(true)
+
+        #expect(spy.starts == 0)
+        #expect(!hub.isCollecting)
+    }
+
+    // MARK: - Errors
+
+    @Test func anErrorTravelsWithoutItsMessage() {
+        let spy = EngineSpy()
+        let hub = AnalyticsHub()
+        let typed = NSError(domain: "Save", code: 7, userInfo: [NSLocalizedDescriptionKey: "Maria da Silva, CPF 123"])
+
+        hub.start(engines: [spy.engine], policy: .storeBuildsOnly, launch: storeBuild)
+        hub.recordError(typed, context: "save")
+
+        let recorded = spy.client.errors.map(\.description)
+        #expect(recorded.count == 1)
+        #expect(recorded.allSatisfy { $0.contains("Save") && $0.contains("7") })
+        #expect(recorded.allSatisfy { !$0.contains("Maria") && !$0.contains("CPF") })
+    }
+
     /// A view outside the scope the app injects into still reaches the engines.
     @Test func environmentDefaultsToTheSharedClient() {
         #expect(EnvironmentValues().analytics as AnyObject === Analytics.shared as AnyObject)
@@ -92,13 +181,21 @@ private final class EngineSpy {
     let client = RecordingAnalyticsClient()
     private(set) var starts = 0
     private(set) var stayOffs = 0
+    private(set) var switches: [Bool] = []
+    private let canStart: Bool
+
+    init(starts canStart: Bool = true) {
+        self.canStart = canStart
+    }
 
     var engine: AnalyticsEngine {
         AnalyticsEngine(name: "spy") { [self] in
             starts += 1
-            return client
+            return canStart ? client : nil
         } stayOff: { [self] in
             stayOffs += 1
+        } setCollectionEnabled: { [self] enabled in
+            switches.append(enabled)
         }
     }
 }

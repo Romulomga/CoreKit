@@ -32,6 +32,7 @@ public final class RecordingAnalyticsClient: AnalyticsClient {
         var errors: [RecordedError] = []
         var transactionIDs: [UInt64] = []
         var purchases: [PurchaseRevenue] = []
+        var collectionChanges: [Bool] = []
     }
 
     private let recorded = OSAllocatedUnfairLock(initialState: Recorded())
@@ -52,6 +53,12 @@ public final class RecordingAnalyticsClient: AnalyticsClient {
     public var transactionIDs: [UInt64] { recorded.withLock { $0.transactionIDs } }
 
     public var purchases: [PurchaseRevenue] { recorded.withLock { $0.purchases } }
+
+    /// Every turn of the user's switch, in order.
+    public var collectionChanges: [Bool] { recorded.withLock { $0.collectionChanges } }
+
+    /// The switch's last position; `nil` when it was never turned.
+    public var collectionEnabled: Bool? { collectionChanges.last }
 
     public func log(_ name: String, parameters: [String: AnalyticsValue]) {
         recorded.withLock { $0.events.append(Event(name, parameters)) }
@@ -79,5 +86,10 @@ public final class RecordingAnalyticsClient: AnalyticsClient {
 
     public func logPurchase(_ purchase: PurchaseRevenue) {
         recorded.withLock { $0.purchases.append(purchase) }
+    }
+
+    @MainActor
+    public func setCollectionEnabled(_ enabled: Bool) {
+        recorded.withLock { $0.collectionChanges.append(enabled) }
     }
 }

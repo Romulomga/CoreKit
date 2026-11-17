@@ -22,8 +22,9 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
   `TabNavigation`/`TabNavigationRoot`, `ReloadNotifier`/`onReload`, `SessionObserver` (destinos
   `SessionDestination`), `NavigationDiagnostics`.
 - `CoreKitAnalytics`: `Analytics.start(engines:policy:)`, `Analytics.shared` (repassa a todos os motores),
+  `Analytics.setCollectionEnabled(_:)` (a chave "Enviar estatísticas" do usuário, todos os motores de uma vez),
   `AnalyticsClient`, `AnalyticsValue`, `CollectionPolicy.storeBuildsOnly` (debug nunca coleta, salvo com
-  `--analytics-debug`; `--uitests` nunca), `trackScreen`.
+  `--analytics-debug`; `--uitests` nunca), `trackScreen`. Erro registrado leva só domínio e código, nunca a mensagem.
 - `CoreKitFirebase`: motor `.firebase(options:)`, Analytics + Crashlytics sem IDFA. Não configura o Firebase de novo
   se o app já configurou.
 - `CoreKitMixpanel`: motor `.mixpanel(token:)`.
@@ -61,6 +62,7 @@ targets:
 ```
 
 ```swift
+Analytics.setCollectionEnabled(settings.analyticsEnabled)   // a escolha salva do usuário, antes do start
 Analytics.start(engines: [.firebase()], policy: .storeBuildsOnly)
 ```
 
