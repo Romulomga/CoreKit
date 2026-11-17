@@ -51,6 +51,9 @@ final class AnalyticsHub: AnalyticsClient {
         var clients: [any AnalyticsClient] = []
         /// The user's switch; on until the app says otherwise.
         var isEnabled = true
+        /// The last id the app gave, handed to the engines when they start or come back on: the app
+        /// may restore its session before `start`, or while collection is off.
+        var userID: String?
     }
 
     private let state = OSAllocatedUnfairLock(initialState: State())
@@ -121,7 +124,14 @@ final class AnalyticsHub: AnalyticsClient {
         }
 
         runningEngines = running
-        state.withLock { [started] in $0.clients = started }
+
+        let userID = state.withLock { [started] in
+            $0.clients = started
+
+            return $0.userID
+        }
+
+        if let userID { started.forEach { $0.setUserID(userID) } }
 
         let startedCount = started.count
         let allowedCount = allowedEngines.count
@@ -142,6 +152,10 @@ final class AnalyticsHub: AnalyticsClient {
             startEngines()
         } else {
             runningEngines.forEach { $0.setCollectionEnabled(enabled) }
+
+            if enabled, let userID = state.withLock({ $0.userID }) {
+                clients.forEach { $0.setUserID(userID) }
+            }
         }
     }
 
@@ -172,5 +186,19 @@ final class AnalyticsHub: AnalyticsClient {
 
     func logPurchase(_ purchase: PurchaseRevenue) {
         clients.forEach { $0.logPurchase(purchase) }
+    }
+
+    func setUserID(_ id: String?) {
+        state.withLock { $0.userID = id }
+
+        clients.forEach { $0.setUserID(id) }
+    }
+
+    func setCrashKey(_ value: String, forKey key: String) {
+        clients.forEach { $0.setCrashKey(value, forKey: key) }
+    }
+
+    func addBreadcrumb(_ message: String) {
+        clients.forEach { $0.addBreadcrumb(message) }
     }
 }

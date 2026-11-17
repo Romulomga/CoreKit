@@ -171,6 +171,50 @@ struct AnalyticsHubTests {
     }
 
     /// A view outside the scope the app injects into still reaches the engines.
+    // MARK: - Who, and what came before a crash
+
+    @Test func theUserAndTheCrashTrailReachEveryEngine() {
+        let firebase = EngineSpy()
+        let mixpanel = EngineSpy()
+        let hub = AnalyticsHub()
+
+        hub.start(engines: [firebase.engine, mixpanel.engine], policy: .storeBuildsOnly, launch: storeBuild)
+        hub.setUserID("user-7f3a")
+        hub.setCrashKey("pro", forKey: "plan")
+        hub.addBreadcrumb("opened the editor")
+        hub.setUserID(nil)
+
+        for spy in [firebase, mixpanel] {
+            #expect(spy.client.userIDs == ["user-7f3a", nil])
+            #expect(spy.client.crashKeys == ["plan": "pro"])
+            #expect(spy.client.breadcrumbs == ["opened the editor"])
+        }
+    }
+
+    /// The app restores its session before `start`, or while the user had collection off: the id
+    /// still reaches the engines when they begin.
+    @Test func anIdGivenBeforeTheEnginesRunReachesThemWhenTheyStart() {
+        let early = EngineSpy()
+        let hub = AnalyticsHub()
+
+        hub.setUserID("user-7f3a")
+        hub.start(engines: [early.engine], policy: .storeBuildsOnly, launch: storeBuild)
+
+        #expect(early.client.userIDs == ["user-7f3a"])
+
+        let switched = EngineSpy()
+        let other = AnalyticsHub()
+
+        other.start(engines: [switched.engine], policy: .storeBuildsOnly, launch: storeBuild)
+        other.setCollectionEnabled(false)
+        other.setUserID("user-9b21")
+        other.setCrashKey("free", forKey: "plan")
+        other.setCollectionEnabled(true)
+
+        #expect(switched.client.userIDs == ["user-9b21"])
+        #expect(switched.client.crashKeys.isEmpty, "nothing else is replayed")
+    }
+
     @Test func environmentDefaultsToTheSharedClient() {
         #expect(EnvironmentValues().analytics as AnyObject === Analytics.shared as AnyObject)
     }

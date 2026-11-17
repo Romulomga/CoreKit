@@ -33,6 +33,9 @@ public final class RecordingAnalyticsClient: AnalyticsClient {
         var transactionIDs: [UInt64] = []
         var purchases: [PurchaseRevenue] = []
         var collectionChanges: [Bool] = []
+        var userIDs: [String?] = []
+        var crashKeys: [String: String] = [:]
+        var breadcrumbs: [String] = []
     }
 
     private let recorded = OSAllocatedUnfairLock(initialState: Recorded())
@@ -59,6 +62,25 @@ public final class RecordingAnalyticsClient: AnalyticsClient {
 
     /// The switch's last position; `nil` when it was never turned.
     public var collectionEnabled: Bool? { collectionChanges.last }
+
+    /// Every `setUserID`, in order (`nil` for a sign-out).
+    public var userIDs: [String?] { recorded.withLock { $0.userIDs } }
+
+    public var crashKeys: [String: String] { recorded.withLock { $0.crashKeys } }
+
+    public var breadcrumbs: [String] { recorded.withLock { $0.breadcrumbs } }
+
+    public func setUserID(_ id: String?) {
+        recorded.withLock { $0.userIDs.append(id) }
+    }
+
+    public func setCrashKey(_ value: String, forKey key: String) {
+        recorded.withLock { $0.crashKeys[key] = value }
+    }
+
+    public func addBreadcrumb(_ message: String) {
+        recorded.withLock { $0.breadcrumbs.append(message) }
+    }
 
     public func log(_ name: String, parameters: [String: AnalyticsValue]) {
         recorded.withLock { $0.events.append(Event(name, parameters)) }

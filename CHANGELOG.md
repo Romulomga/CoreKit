@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.11 - 2026-11-17
+
+- `CoreKitAnalytics`: `AnalyticsClient.setUserID(_:)` (quem usa o app, num app com conta; `nil` no logout),
+  `setCrashKey(_:forKey:)` e `addBreadcrumb(_:)` (o que vai no próximo relatório de falha). Requisitos com implementação
+  vazia por padrão: acréscimo, nada quebra. O hub guarda o último id e o entrega quando os motores começam ou a coleta
+  volta a ser ligada, porque o app pode restaurar a sessão antes do `start` ou com a chave desligada. Nunca e-mail, nome
+  ou telefone: um id opaco do servidor do app.
+- `CoreKitFirebase`: user ID no Analytics e no Crashlytics, chaves e trilha no Crashlytics.
+- `CoreKitMixpanel`: `identify` com o id e `reset` no logout. Agora gêmeo do módulo `mixpanel` do CoreKit-Android 0.1.10.
+- `CoreKitTesting`: `RecordingAnalyticsClient` registra `userIDs`, `crashKeys` e `breadcrumbs`.
+
 ## 0.1.10 - 2026-11-17
 
 Portas abertas pela regra nova (o que um app qualquer precisaria), todas com o comportamento de antes como padrão:

@@ -5,7 +5,7 @@ import StoreKit
 extension AnalyticsEngine {
     /// Mixpanel with the app's project token, with its automatic events (first open, app updated,
     /// sessions) on, the counterpart of Firebase's own. `nil` or empty leaves the engine off, so a
-    /// build without the secrets file still runs. iOS only: no Android app uses Mixpanel.
+    /// build without the secrets file still runs. Twin of CoreKit-Android's `mixpanel` module.
     ///
     /// `flushInterval` is how often, in seconds, queued events go out (Mixpanel's default is 60). A
     /// staging build traced with `--analytics-debug` passes something short, so QA sees an event
@@ -65,6 +65,18 @@ struct MixpanelAnalyticsClient: AnalyticsClient {
 
     /// Mixpanel isn't a crash reporter; errors go to the app's (Crashlytics, Sentry).
     func recordError(_ error: any Error, context: String?) {}
+
+    /// `identify` merges the anonymous events of this device into the user; `reset` on sign-out starts
+    /// a new anonymous id, so the next person on the device isn't counted as the last one.
+    func setUserID(_ id: String?) {
+        let mixpanel = Mixpanel.mainInstance()
+
+        if let id {
+            mixpanel.identify(distinctId: id)
+        } else {
+            mixpanel.reset()
+        }
+    }
 
     /// Mixpanel's revenue lives on the people profile, which needs an identified user; no app sells
     /// through Mixpanel yet.

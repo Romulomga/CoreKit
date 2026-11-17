@@ -34,6 +34,20 @@ struct FirebaseAnalyticsClient: AnalyticsClient {
         FirebaseAnalytics.Analytics.logEvent(AnalyticsEventPurchase, parameters: Self.purchaseParameters(purchase))
     }
 
+    /// Crashlytics has no "forget": an empty id is its sign-out.
+    func setUserID(_ id: String?) {
+        FirebaseAnalytics.Analytics.setUserID(id)
+        Crashlytics.crashlytics().setUserID(id ?? "")
+    }
+
+    func setCrashKey(_ value: String, forKey key: String) {
+        Crashlytics.crashlytics().setCustomValue(value, forKey: key)
+    }
+
+    func addBreadcrumb(_ message: String) {
+        Crashlytics.crashlytics().log(message)
+    }
+
     // MARK: - Parameters
 
     // What each call hands Firebase, built apart from the SDK so a test reads it without Firebase set up.

@@ -40,12 +40,31 @@ public protocol AnalyticsClient: Sendable {
     /// every engine; a client that doesn't collect ignores it.
     @MainActor
     func setCollectionEnabled(_ enabled: Bool)
+
+    /// Who is using the app, for an app with accounts: the engines tie events and crashes to this id
+    /// (Firebase's user ID, Crashlytics' user, Mixpanel's `identify`); `nil` on sign-out forgets it
+    /// (Mixpanel's `reset`). An opaque id from the app's server, never an e-mail, a name or a phone.
+    func setUserID(_ id: String?)
+
+    /// A value attached to every later crash report (the plan, a feature flag, the screen size class).
+    /// Never what the user typed.
+    func setCrashKey(_ value: String, forKey key: String)
+
+    /// A line in the trail the next crash report carries ("opened the editor", "sync started"): what
+    /// happened before the crash. Never what the user typed.
+    func addBreadcrumb(_ message: String)
 }
 
 extension AnalyticsClient {
     /// An engine's client is switched through its `AnalyticsEngine`, not here.
     @MainActor
     public func setCollectionEnabled(_ enabled: Bool) {}
+
+    public func setUserID(_ id: String?) {}
+
+    public func setCrashKey(_ value: String, forKey key: String) {}
+
+    public func addBreadcrumb(_ message: String) {}
 }
 
 /// A confirmed sale. The value goes in cents: no floating point on the money path until the engine
