@@ -85,6 +85,24 @@ import Testing
         #expect(outbox.changes.isEmpty)
     }
 
+    /// Pull to refresh right after a local write joins the run that only sends: it still reads.
+    @Test func aSyncThatJoinsARunThatOnlySendsStillReads() async {
+        _ = outbox.queue("a", at: 1)
+        subject.pushGate.hold()
+        let engine = engine()
+        let pushing = Task { await engine.pushPending() }
+        await waitUntil { subject.pushGate.waitingCount == 1 }
+
+        let syncing = Task { await engine.sync() }
+        await waitUntil { subject.pushGate.waitingCount == 1 && engine.status.isSyncing }
+        for _ in 0..<10 { await Task.yield() }
+        subject.pushGate.release()
+        await pushing.value
+        _ = await syncing.value
+
+        #expect(subject.events == ["push a", "pull"])
+    }
+
     // MARK: - Reading
 
     /// A record with a change waiting keeps the local version: the change goes first and the server decides.

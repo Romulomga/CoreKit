@@ -100,6 +100,7 @@ final class FakeSubject: SyncSubject {
     var rows: [String: Row] = [:]
 
     let pullGate = Gate()
+    let pushGate = Gate()
     var pulls: [PullBatch<Row>] = []
     var pullFailure: (any Error)?
     private(set) var pullCursors: [String?] = []
@@ -135,6 +136,7 @@ final class FakeSubject: SyncSubject {
     func push(_ change: PendingChange) async throws -> PushOutcome {
         pushed.append(change)
         events.append("push \(change.entityID)")
+        await pushGate.pass()
         return try pushAnswer(change)
     }
 

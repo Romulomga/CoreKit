@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.14 - 2026-11-17
+
+- Correção do motor de sync: um `sync()` (puxar para atualizar) que entrava numa rodada que só enviava (`pushPending`,
+  logo depois de uma gravação local) voltava sem ler. Agora a rodada lê antes de terminar. Mesma correção no CoreKit-Android 0.1.13.
+
 ## 0.1.13 - 2026-11-17
 
 - `CoreKitSync` (novo módulo): o sync de um assunto offline-first. `SyncSubject` (o que o app implementa: `pull(since:)`

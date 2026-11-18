@@ -75,6 +75,9 @@ public final class SyncEngine<Subject: SyncSubject, Failure: Error & Equatable &
     /// A local write while a run was on its way: the run sends the outbox once more before it ends.
     @ObservationIgnored private var pushAgain = false
 
+    /// Whether the run on its way reads: a `sync()` that joins a run that only sends asks for the read.
+    @ObservationIgnored private var runReads = false
+
     /// Goes up on `reset()`: a run of the previous session ends without writing.
     @ObservationIgnored private var epoch = 0
 
@@ -101,7 +104,10 @@ public final class SyncEngine<Subject: SyncSubject, Failure: Error & Equatable &
     /// Sends, then reads. A caller while a run is on its way waits for it. The failure is for a toast.
     @discardableResult
     public func sync() async -> Failure? {
-        if let running { return await running.value }
+        if let running {
+            runReads = true
+            return await running.value
+        }
 
         return await start(pulling: true).value
     }
@@ -155,6 +161,7 @@ public final class SyncEngine<Subject: SyncSubject, Failure: Error & Equatable &
         retrying = nil
         failuresInARow = 0
         pushAgain = false
+        runReads = false
 
         try outbox.removeAll(subject: subject.name)
         try subject.resetState()
@@ -168,10 +175,11 @@ public final class SyncEngine<Subject: SyncSubject, Failure: Error & Equatable &
         retrying?.cancel()
         retrying = nil
         status.isSyncing = true
+        runReads = pulling
 
         let epoch = epoch
         let task = Task { [weak self] () -> Failure? in
-            await self?.run(pulling: pulling, epoch: epoch)
+            await self?.run(epoch: epoch)
         }
 
         running = task
@@ -179,18 +187,26 @@ public final class SyncEngine<Subject: SyncSubject, Failure: Error & Equatable &
         return task
     }
 
-    private func run(pulling: Bool, epoch: Int) async -> Failure? {
+    private func run(epoch: Int) async -> Failure? {
         let failure: Failure?
 
         do {
             try await sendOutbox(epoch: epoch)
 
-            if pulling { try await pull(epoch: epoch) }
+            var didRead = false
 
-            // A local write while the run was on its way goes before it ends.
-            while pushAgain, epoch == self.epoch {
-                pushAgain = false
-                try await sendOutbox(epoch: epoch)
+            // A local write while the run was on its way goes before it ends, and a `sync()` that joined a run that only
+            // sent still reads.
+            while epoch == self.epoch {
+                if pushAgain {
+                    pushAgain = false
+                    try await sendOutbox(epoch: epoch)
+                } else if runReads, !didRead {
+                    didRead = true
+                    try await pull(epoch: epoch)
+                } else {
+                    break
+                }
             }
 
             failure = nil
