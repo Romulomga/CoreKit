@@ -61,7 +61,7 @@ recovery screen, and the engine keys (`GoogleService-Info.plist`, Mixpanel token
   because every new iOS app starts from the `novo-app-ios` skill skeleton, which imports them. Second exception
   (2026-11-17): `CoreKitNetwork` (Homer's `NetworkKit`, generalized) entered with Homer alone, so any app with a
   backend starts from it. Third (2026-11-17): the cache blocks (`KeyedResource`, `PagedResource`, `SessionCache`)
-  entered with Homer alone, and `CoreKitSync` with no app yet, because the skeleton (`~/Desktop/TesteApp`) shows the
+  entered with Homer alone, and `CoreKitSync` with no app yet, because the skeleton (`~/Desktop/reference-app`, repo `Romulomga/reference-app`) shows the
   three ways of a subject (offline, online, offline-first with sync) and every new app starts from it. The sync
   engine's send side is proven only against doubles until the first app with a backend uses it.
 
