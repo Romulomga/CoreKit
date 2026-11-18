@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.17 - 2026-11-18
+
+- Correção do `NavigationHost` com `.hidesOnPush`: um host criado com telas já na pilha (um deep link aberto antes de
+  a aba aparecer, como no início a frio de um app com o `Navigator` na raiz) mostrava a barra de abas sobre a tela
+  empilhada. Agora a barra começa no estado da pilha (`TabBarRule`), escondida fora da raiz.
+
 ## 0.1.16 - 2026-11-18
 
 - `CoreKitNavigation`: `NavigableDestination.opensOnSelectedTab` (falso por padrão). Uma rota sem aba própria que o

@@ -235,3 +235,11 @@ import Testing
         #expect(coordinator.destinations == [.detail(1)])
     }
 }
+
+@Suite struct TabBarRuleTests {
+
+    @Test func theTabBarShowsAtTheRootOnly() {
+        #expect(TabBarRule.showsTabBar(pathCount: 0))
+        #expect(!TabBarRule.showsTabBar(pathCount: 1), "a host created over a pushed screen starts with the bar hidden")
+    }
+}

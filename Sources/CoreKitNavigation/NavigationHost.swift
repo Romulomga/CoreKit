@@ -68,6 +68,7 @@ public struct NavigationHost<D: NavigableDestination, Content: View>: View {
         self.viewBuilder = viewBuilder
         self._coordinator = State(initialValue: coordinator)
         self._reloadNotifier = State(initialValue: reloadNotifier)
+        self._shouldShowTabBar = State(initialValue: TabBarRule.showsTabBar(pathCount: coordinator.pathCount))
     }
 
     // MARK: - Body
@@ -150,6 +151,15 @@ private struct KeyboardDismissOnPush: ViewModifier {
     }
 }
 
+/// When `.hidesOnPush` shows the tab bar: at the stack's root only. Also read when the host is created, so a stack that
+/// already has screens (a deep link opened before its tab was on screen) starts with the bar hidden instead of showing
+/// it over the pushed screen.
+enum TabBarRule {
+    static func showsTabBar(pathCount: Int) -> Bool {
+        pathCount == 0
+    }
+}
+
 /// Tab bar handling kept out of the navigation transaction: the toolbar visibility is a
 /// navigation request of its own, so it is applied on the next run-loop tick instead of in the
 /// same frame as the path change.
@@ -168,7 +178,7 @@ private struct TabBarVisibility: ViewModifier {
             content
                 .onChange(of: pathCount) { _, count in
                     Task { @MainActor in
-                        withAnimation(.easeInOut(duration: 0.35)) { isVisible = count == 0 }
+                        withAnimation(.easeInOut(duration: 0.35)) { isVisible = TabBarRule.showsTabBar(pathCount: count) }
                     }
                 }
                 .toolbar(isVisible ? .visible : .hidden, for: .tabBar)
