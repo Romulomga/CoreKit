@@ -32,13 +32,33 @@ import Testing
 
     // MARK: - Opening
 
-    @Test func aTabRouteSwitchesTabAndPushes() {
+    @Test func aTabRouteSwitchesTabAndPushesOnTheNextTurn() async {
         let navigator = Navigator<TabRoute>(tab: .inbox)
+        let home = navigator.coordinator(for: .home)
 
         navigator.open(.detail(7))
 
         #expect(navigator.selection == .home)
+        #expect(home.destinations.isEmpty, "the push waits for the tab switch to land")
+        await waitUntil { home.destinations == [.detail(7)] }
+    }
+
+    @Test func aRouteOnTheSelectedTabPushesAtOnce() {
+        let navigator = Navigator<TabRoute>(tab: .home)
+
+        navigator.open(.detail(7))
+
         #expect(navigator.coordinator(for: .home).destinations == [.detail(7)])
+    }
+
+    @Test func aRouteThatOpensOnTheSelectedTabStaysOnIt() {
+        let navigator = Navigator<TabRoute>(tab: .inbox)
+
+        navigator.open(.profile)
+
+        #expect(navigator.selection == .inbox)
+        #expect(navigator.coordinator(for: .inbox).destinations == [.profile])
+        #expect(navigator.root.destinations.isEmpty, "not behind the main tab's cover")
     }
 
     @Test func aRouteWithoutATabGoesOnTheBottomStack() {
@@ -89,11 +109,12 @@ import Testing
         await waitUntil { home.destinations == [.detail(2)] }
     }
 
-    @Test func aURLOpensItsRouteAndAnUnknownOneIsLeftToTheApp() throws {
+    @Test func aURLOpensItsRouteAndAnUnknownOneIsLeftToTheApp() async throws {
         let navigator = Navigator<TabRoute>(tab: .inbox)
+        let home = navigator.coordinator(for: .home)
 
         #expect(navigator.open(try #require(URL(string: "app://detail/3"))))
-        #expect(navigator.coordinator(for: .home).destinations == [.detail(3)])
+        await waitUntil { home.destinations == [.detail(3)] }
 
         #expect(!navigator.open(try #require(URL(string: "https://example.com/page"))))
         #expect(navigator.selection == .home, "nothing changed")

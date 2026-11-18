@@ -44,13 +44,19 @@ enum TabRoute: DeepLinkDestination, SessionDestination {
     case detail(Int)
     case conversation(Int)
     case login
+    /// Reached from every tab: shows on the selected one.
+    case profile
 
     var tab: TabRoute? {
         switch self {
         case .home, .detail: .home
         case .inbox, .conversation: .inbox
-        case .login, .mainTab: nil
+        case .login, .mainTab, .profile: nil
         }
+    }
+
+    var opensOnSelectedTab: Bool {
+        self == .profile
     }
 
     var replacesStack: Bool {

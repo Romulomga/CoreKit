@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.16 - 2026-11-18
+
+- `CoreKitNavigation`: `NavigableDestination.opensOnSelectedTab` (falso por padrão). Uma rota sem aba própria que o
+  declara abre, pelo `Navigator.open(_:)`, na aba selecionada, e não na pilha de baixo: é a tela que toda aba alcança
+  (perfil, ajustes) num app com login, cuja pilha de baixo fica sob a capa da tela principal. Decisão do dono, 18/11.
+- `Navigator.open(_:)` agora também espera o turno seguinte depois de trocar de aba, como já fazia ao fechar uma folha:
+  a troca e o push no mesmo quadro perdiam o push. Na aba já selecionada, o push continua imediato. Decisão do dono, 18/11.
+- Sem gêmeo ainda: o `Navigator` do CoreKit-Android não tem `open` por aba dona (pendência de paridade conhecida).
+
 ## 0.1.15 - 2026-11-18
 
 - `CoreKitMixpanel`: `.mixpanel(token:flushInterval:screenEvent:)` recebe o formato do evento de tela

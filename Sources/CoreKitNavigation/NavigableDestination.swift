@@ -29,6 +29,11 @@ public protocol NavigableDestination: Hashable, Identifiable, SendableMetatype {
     /// the bottom stack (the auth flow, or the only stack). A tab's root returns itself.
     var tab: Self? { get }
 
+    /// A route without a tab of its own (`tab` nil) that `Navigator.open(_:)` shows on the selected tab instead of the
+    /// bottom stack: a screen every tab reaches (a profile, a settings page) in a login-gated app, whose bottom stack is
+    /// the auth flow under the main tab's cover. False by default.
+    var opensOnSelectedTab: Bool { get }
+
     /// How the destination shows when nothing says otherwise: `Coordinator.navigate(to:)` without a `type`, and
     /// `Navigator.open(_:)` (a deep link opens it the way the app does). Push by default.
     var presentation: NavigationType { get }
@@ -47,6 +52,8 @@ extension NavigableDestination {
     public var routeName: String { String(describing: id) }
 
     public var tab: Self? { nil }
+
+    public var opensOnSelectedTab: Bool { false }
 
     public var replacesStack: Bool { false }
 

@@ -90,17 +90,17 @@ public final class Navigator<D: NavigableDestination> {
 
     // MARK: - Opening
 
-    /// Shows `destination` from anywhere. A route without a tab goes on the bottom stack. A tab's route is selected
-    /// and its stack goes to the route: the tab itself pops to its root, the screen already on top stays, a route
+    /// Shows `destination` from anywhere. A route without a tab goes on the bottom stack, or on the selected tab's
+    /// stack when it `opensOnSelectedTab`. A tab's route is selected and its stack goes to the route: the tab itself pops to its root, the screen already on top stays, a route
     /// that `replacesStack` replaces the stack, anything else is shown the way it says (`presentation`: pushed, or as a
-    /// sheet or cover, as the app shows it). A sheet or cover open on that stack is closed first, and the new route
-    /// waits for the next turn so the two changes don't land in one frame. A route without a tab goes on the bottom
+    /// sheet or cover, as the app shows it). A sheet or cover open on that stack is closed first, and after that or after a tab
+    /// switch the new route waits for the next turn, so the two changes don't land in one frame (the push was lost). A route without a tab goes on the bottom
     /// stack, also the way it says.
     ///
     /// While links are held (`holdLinks(until:)`), a tab's route waits in `heldLink` and opens when they may; the bottom
     /// stack is what shows meanwhile, so its routes open at once.
     public func open(_ destination: D) {
-        guard let tab = destination.tab else {
+        guard let tab = destination.tab ?? (destination.opensOnSelectedTab ? tabs.selection : nil) else {
             root.navigate(to: destination)
             return
         }
@@ -110,6 +110,7 @@ public final class Navigator<D: NavigableDestination> {
             return
         }
 
+        let switchesTab = tabs.selection != tab
         tabs.switch(to: tab)
 
         let stack = coordinator(for: tab)
@@ -131,7 +132,7 @@ public final class Navigator<D: NavigableDestination> {
             }
         }
 
-        if hadModal {
+        if hadModal || switchesTab {
             Task { @MainActor in land() }
         } else {
             land()
