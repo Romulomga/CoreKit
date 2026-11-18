@@ -10,7 +10,15 @@ extension AnalyticsEngine {
     /// `flushInterval` is how often, in seconds, queued events go out (Mixpanel's default is 60). A
     /// staging build traced with `--analytics-debug` passes something short, so QA sees an event
     /// right after the tap instead of a minute later.
-    public static func mixpanel(token: String?, flushInterval: Double = 60) -> AnalyticsEngine {
+    ///
+    /// `screenEvent` is how a screen the navigation reports reaches Mixpanel: by default the names
+    /// Firebase uses (`screen_view` with `screen_name`); an app whose reports already read another
+    /// shape (a legacy `page_viewed` with `name_of_the_page_viewed`) passes that one.
+    public static func mixpanel(
+        token: String?,
+        flushInterval: Double = 60,
+        screenEvent: MixpanelScreenEvent = .standard
+    ) -> AnalyticsEngine {
         AnalyticsEngine(name: "Mixpanel") {
             guard let token, !token.isEmpty else {
                 analyticsLog.notice("Mixpanel off: no token")
@@ -25,7 +33,7 @@ extension AnalyticsEngine {
                 mixpanel.optInTracking()
             }
 
-            return MixpanelAnalyticsClient()
+            return MixpanelAnalyticsClient(screenEvent: screenEvent)
         } setCollectionEnabled: { enabled in
             let mixpanel = Mixpanel.mainInstance()
 
@@ -41,14 +49,15 @@ extension AnalyticsEngine {
 /// The only place that talks to the Mixpanel SDK. It reaches the main instance on each call instead
 /// of keeping it: `MixpanelInstance` isn't `Sendable`, and the SDK guards its own state.
 struct MixpanelAnalyticsClient: AnalyticsClient {
+    let screenEvent: MixpanelScreenEvent
+
     func log(_ name: String, parameters: [String: AnalyticsValue]) {
         Mixpanel.mainInstance().track(event: name, properties: parameters.mapValues(Self.property))
     }
 
-    /// Mixpanel has no screen event of its own; this one uses the names Firebase uses, so a screen
-    /// reads the same in both.
+    /// Mixpanel has no screen event of its own: the app's `screenEvent` says which one.
     func screen(_ name: String) {
-        Mixpanel.mainInstance().track(event: "screen_view", properties: ["screen_name": name])
+        Mixpanel.mainInstance().track(event: screenEvent.event, properties: screenEvent.properties(for: name))
     }
 
     /// As a super property, which rides on every later event: Mixpanel's counterpart of a GA4 user

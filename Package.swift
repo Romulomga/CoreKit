@@ -65,6 +65,7 @@ let package = Package(
                 .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
             ]
         ),
+        .testTarget(name: "CoreKitMixpanelTests", dependencies: ["CoreKitMixpanel"]),
         .testTarget(name: "CoreKitStoreTests", dependencies: ["CoreKitStore", "CoreKitTesting"]),
         .testTarget(name: "CoreKitReviewTests", dependencies: ["CoreKitReview"]),
         .testTarget(name: "CoreKitSyncTests", dependencies: ["CoreKitSync", "CoreKitTesting"]),

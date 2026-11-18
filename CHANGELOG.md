@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.15 - 2026-11-18
+
+- `CoreKitMixpanel`: `.mixpanel(token:flushInterval:screenEvent:)` recebe o formato do evento de tela
+  (`MixpanelScreenEvent`: o nome do evento e a chave do nome da tela). O padrão continua `screen_view` com
+  `screen_name`; um app com relatórios num formato antigo (o Homer: `page_viewed` com `name_of_the_page_viewed`) passa o
+  dele. Alvo de testes novo, `CoreKitMixpanelTests`. Gêmeo do CoreKit-Android 0.1.14.
+
 ## 0.1.14 - 2026-11-17
 
 - Correção do motor de sync: um `sync()` (puxar para atualizar) que entrava numa rodada que só enviava (`pushPending`,
