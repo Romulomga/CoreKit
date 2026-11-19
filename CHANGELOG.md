@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.19 - 2026-11-18
+
+- `KeyedResource.reload(_:)` e `PagedResource.reload(_:)`: o valor (ou as linhas) da chave sai, a busca a caminho é
+  largada e a chave é lida de novo sob o esqueleto. É o par barulhento do `invalidate`, que relê com o valor na tela.
+  Para app cujas telas sempre leem do zero ao abrir (o Homer, decisão do dono, 18/11). Só acrescenta: nada muda para
+  quem não chama. Gêmeo do CoreKit-Android 0.1.15.
+
 ## 0.1.18 - 2026-11-18
 
 - `CoreKitNavigation`: saem o `SessionObserver` e o `SessionDestination`. O único usuário era o Homer, que agora tem a

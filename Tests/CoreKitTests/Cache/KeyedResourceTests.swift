@@ -152,6 +152,39 @@ import Testing
         #expect(resource.entry(2).status == .idle)
     }
 
+    /// An opening that must not show what was kept: the value goes at once, the skeleton shows, and an answer of the
+    /// fetch that was on its way never lands over the new one.
+    @Test func aReloadDropsTheValueAndTheFetchOnItsWay() async {
+        let server = FetchSpy<Int, String> { "old \($0)" }
+        let resource = server.resource()
+        await resource.refresh(1)
+        server.gate.hold()
+        let before = Task { await resource.refresh(1) }
+        await waitUntil { server.gate.waitingCount == 1 }
+
+        server.answer = { "new \($0)" }
+        resource.reload(1)
+
+        #expect(resource.entry(1).value == nil, "nothing kept on screen")
+        #expect(resource.entry(1).status == .loading)
+        server.gate.release()
+        _ = await before.value
+        await waitUntil { resource.entry(1).status == .loaded }
+        #expect(resource.entry(1).value == "new 1")
+    }
+
+    @Test func aReloadThatFailsShowsTheErrorNotTheOldValue() async {
+        let server = FetchSpy<Int, String> { "old \($0)" }
+        let resource = server.resource()
+        await resource.refresh(1)
+
+        server.answer = { _ in throw TestFailure.offline }
+        resource.reload(1)
+
+        await waitUntil { resource.entry(1).status == .failed(.offline) }
+        #expect(resource.entry(1).value == nil)
+    }
+
     // MARK: - End of the session
 
     @Test func theEndOfTheSessionEmptiesTheCacheAndDropsAnswersOnTheirWay() async {

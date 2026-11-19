@@ -132,6 +132,28 @@ import Testing
         #expect(resource.list("following").items[1].isFollowing)
     }
 
+    /// An opening that must not show what was kept: the rows go at once and the first page is read again; a next page
+    /// on its way for the old rows never lands.
+    @Test func aReloadDropsTheRowsAndThePagesOnTheirWay() async {
+        let server = PageSpy { _ in Self.page(0, 3, hasMore: true) }
+        let resource = server.resource()
+        await resource.refresh("list")
+        server.gate.hold()
+        let nextPage = Task { await resource.loadMore("list") }
+        await waitUntil { server.gate.waitingCount == 1 }
+
+        server.answer = { _ in Self.page(10, 2, hasMore: false) }
+        resource.reload("list")
+
+        #expect(resource.list("list").items.isEmpty, "nothing kept on screen")
+        #expect(resource.list("list").status == .loading)
+        server.gate.release()
+        _ = await nextPage.value
+        await waitUntil { resource.list("list").status == .loaded }
+        #expect(resource.list("list").items.map(\.id) == [10, 11])
+        #expect(resource.list("list").pages == 1)
+    }
+
     @Test func theEndOfTheSessionEmptiesTheListsAndDropsAnswersOnTheirWay() async {
         let server = PageSpy { _ in Self.page(0, 3, hasMore: true) }
         let resource = server.resource()

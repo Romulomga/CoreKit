@@ -121,6 +121,13 @@ where Item.ID: Sendable {
         for key in lists.keys { invalidate(key) }
     }
 
+    /// A screen opens and must not show what was kept: the rows go, the pages on their way are let go, and the first
+    /// page is read again under the skeleton. `invalidate` is the quiet one, with the rows on screen.
+    public func reload(_ key: Key) {
+        lists[key] = PagedList()
+        startRestart(key)
+    }
+
     /// Every list that shows the row reads its first page again: a write that may have landed moved it.
     public func invalidateLists(showing id: Item.ID) {
         for (key, list) in lists where list.items.contains(where: { $0.id == id }) { invalidate(key) }

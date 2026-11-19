@@ -80,6 +80,15 @@ public final class KeyedResource<Key: Hashable & Sendable, Value: Equatable & Se
         for key in entries.keys { invalidate(key) }
     }
 
+    /// A screen opens and must not show what was kept (an app whose screens always read from scratch on opening): the
+    /// value goes, a fetch on its way is let go, and the key is read again under its skeleton. `invalidate` is the
+    /// quiet one, with the value on screen.
+    public func reload(_ key: Key) {
+        drop(key)
+        entries[key] = Loadable()
+        start(key)
+    }
+
     /// The server confirmed a write: the cache takes its result, and a read that left before is dropped.
     public func set(_ value: Value, for key: Key) {
         drop(key)
