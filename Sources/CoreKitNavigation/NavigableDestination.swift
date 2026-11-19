@@ -5,7 +5,7 @@ import SwiftUI
 /// the app maps each case to its view in the host's `viewBuilder`.
 ///
 /// Every requirement has a default, so a plain `enum Route: NavigableDestination { ... }` is
-/// enough. A login-gated app adds `SessionDestination` for `SessionObserver`.
+/// enough.
 ///
 /// `SendableMetatype`: the conformance itself is never isolated to an actor (SE-0470), so the
 /// main-actor `Coordinator`, `ReloadNotifier` and `NavigationHost` can use it from any context

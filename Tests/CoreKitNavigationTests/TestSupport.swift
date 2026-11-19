@@ -3,7 +3,7 @@ import SwiftUI
 import Testing
 
 /// A login-gated app's routes, declared the way Homer declares its own.
-enum TestDestination: SessionDestination {
+enum TestDestination: NavigableDestination {
     case root, detail(Int), settings, mainTab
 
     var id: String { String(describing: self) }
@@ -39,7 +39,7 @@ func waitUntil(sourceLocation: SourceLocation = #_sourceLocation, _ condition: (
 
 /// A tab app with a bottom stack, declared the way Homer declares its own: two tabs, a pushed screen in each, a
 /// conversation that replaces its tab's stack, and a login screen on the bottom stack.
-enum TabRoute: DeepLinkDestination, SessionDestination {
+enum TabRoute: DeepLinkDestination {
     case home, inbox, mainTab
     case detail(Int)
     case conversation(Int)

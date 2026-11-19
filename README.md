@@ -21,8 +21,7 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
   `NavigationHost`, `RouteLink` (linha com o chevron nativo que passa pelas regras do coordinator),
   `Navigator` (a navegação inteira: a pilha de baixo e uma pilha por aba ou seção, criada sob demanda; `open` leva um
   destino ou uma URL à pilha certa, segura links até o app estar pronto) com `NavigationTab`,
-  `TabNavigation`/`TabNavigationRoot`, `ReloadNotifier`/`onReload`, `SessionObserver` (destinos
-  `SessionDestination`), `NavigationDiagnostics`.
+  `TabNavigation`/`TabNavigationRoot`, `ReloadNotifier`/`onReload`, `NavigationDiagnostics`.
 - `CoreKitAnalytics`: `Analytics.start(engines:policy:)`, `Analytics.shared` (repassa a todos os motores),
   `Analytics.setCollectionEnabled(_:)` (a chave "Enviar estatísticas" do usuário, todos os motores de uma vez),
   `AnalyticsClient` (com `setUserID` para app com conta, `setCrashKey` e `addBreadcrumb` para o relatório de falha;
@@ -55,7 +54,7 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
   para não estourar quando as suítes rodam em paralelo), `ArchitectureCheck`/`ArchitectureRule` (um teste
   que lê o código do app e aponta arquivo e linha que fogem da arquitetura: objeto do banco numa View, pasta `Views/`).
 
-Só no iOS: `SessionObserver`, `ReloadNotifier`, `NavigationDiagnostics`, a barra de abas escondida no push, a
+Só no iOS: `ReloadNotifier`, `NavigationDiagnostics`, a barra de abas escondida no push, a
 validade da assinatura dentro de `EntitlementKind`, `AsyncStream.observing` (no Android, o `Flow` do Room mapeado
 para o estado da tela com `stateInScreen`), `eventually` (no Android, `runTest` e o `MainDispatcherRule`) e
 `ArchitectureCheck` (entra no CoreKit-Android quando houver um app Android no mesmo padrão).

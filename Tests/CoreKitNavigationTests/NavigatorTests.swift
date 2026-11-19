@@ -198,19 +198,4 @@ import Testing
         #expect(navigator.heldLink == nil)
         #expect(navigator.root.destinations == [.login])
     }
-
-    @Test func aLogoutResetsTheTabsOnceTheCoverIsGone() async {
-        let navigator = Navigator<TabRoute>(tab: .home)
-        let (stream, continuation) = AsyncStream<Bool>.makeStream()
-        let observer = SessionObserver(navigator: navigator, isLoggedInStream: stream, coverPresentationDelay: .zero)
-
-        continuation.yield(true)
-        await waitUntil { navigator.root.fullCoverDestination == .mainTab }
-        navigator.open(.conversation(1))
-
-        continuation.yield(false)
-        await waitUntil { navigator.root.fullCoverDestination == nil && navigator.isAtRoot(.inbox) }
-        #expect(navigator.selection == .home, "the next session starts on the first tab")
-        _ = observer
-    }
 }

@@ -2,8 +2,7 @@
 import SwiftUI
 import Testing
 
-/// `PlainRoute` declares no requirement at all: these fail to compile without the defaults, and
-/// it never has to name a `mainTab`.
+/// `PlainRoute` declares no requirement at all: these fail to compile without the defaults.
 @MainActor
 @Suite struct NavigableDestinationTests {
 

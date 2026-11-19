@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.18 - 2026-11-18
+
+- `CoreKitNavigation`: saem o `SessionObserver` e o `SessionDestination`. O único usuário era o Homer, que agora tem a
+  navegação da sessão dele (`SessionNavigation`) num laço só com os outros efeitos da sessão; um padrão entra no
+  CoreKit quando dois apps o repetem. Quebra quem ainda os usa (as branches antigas do Homer): decisão do dono, 18/11.
+  A regra do `Navigator.reset()` no logout continua testada em `NavigatorTests`.
+
 ## 0.1.17 - 2026-11-18
 
 - Correção do `NavigationHost` com `.hidesOnPush`: um host criado com telas já na pilha (um deep link aberto antes de
