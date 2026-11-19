@@ -15,14 +15,18 @@ public struct PageRequest: Equatable, Sendable {
 }
 
 /// A page as the server answered it; `hasMore` is the endpoint's rule (`total`, or a page shorter than the limit).
+/// `total` is the size of the whole list when the endpoint says it (offset/limit with a count), nil when it does not.
 public struct Page<Item: Sendable>: Sendable {
     public let items: [Item]
 
     public let hasMore: Bool
 
-    public init(items: [Item], hasMore: Bool) {
+    public let total: Int?
+
+    public init(items: [Item], hasMore: Bool, total: Int? = nil) {
         self.items = items
         self.hasMore = hasMore
+        self.total = total
     }
 }
 
@@ -39,12 +43,19 @@ public struct PagedList<Item: Identifiable & Equatable & Sendable, Failure: Erro
     /// Pages appended since the last restart: the next one is `pages + 1`.
     public var pages = 0
 
-    public init(items: [Item] = [], hasMore: Bool = false, status: LoadStatus<Failure> = .idle, isLoadingMore: Bool = false, pages: Int = 0) {
+    /// The size of the whole list as the server last said it (`Page.total`), nil when the endpoint does not say.
+    public var total: Int?
+
+    public init(
+        items: [Item] = [], hasMore: Bool = false, status: LoadStatus<Failure> = .idle, isLoadingMore: Bool = false, pages: Int = 0,
+        total: Int? = nil
+    ) {
         self.items = items
         self.hasMore = hasMore
         self.status = status
         self.isLoadingMore = isLoadingMore
         self.pages = pages
+        self.total = total
     }
 }
 
@@ -69,6 +80,9 @@ where Item.ID: Sendable {
     @ObservationIgnored private var nextPages: [Key: Task<Failure?, Never>] = [:]
     /// Per list: goes up on every restart, so a page asked for the list that was replaced is dropped.
     @ObservationIgnored private var generations: [Key: Int] = [:]
+    /// What the last restart of each list that landed answered (nil inside: it loaded), for a refresh that joined a
+    /// restart replaced meanwhile.
+    @ObservationIgnored private var outcomes: [Key: Failure?] = [:]
     @ObservationIgnored private var epoch = 0
 
     public init(mapError: @escaping (any Error) -> Failure?, fetch: @escaping @MainActor (Key, PageRequest) async throws -> Page<Item>) {
@@ -88,7 +102,8 @@ where Item.ID: Sendable {
     }
 
     /// Pull to refresh and "Tentar de novo": joins the restart on its way. The error is for a toast; the
-    /// rows on screen stay until the new first page lands.
+    /// rows on screen stay until the new first page lands. A restart joined here can be replaced while it runs (a
+    /// write landed, the query moved): the caller gets the answer of the one that decides the list.
     @discardableResult
     public func refresh(_ key: Key) async -> Failure? {
         var task = restarts[key] ?? startRestart(key)
@@ -96,7 +111,8 @@ where Item.ID: Sendable {
         let epoch = epoch
         while true {
             let outcome = await task.value
-            guard epoch == self.epoch, generation != generations[key, default: 0], let newer = restarts[key] else { return outcome }
+            guard epoch == self.epoch, generation != generations[key, default: 0] else { return outcome }
+            guard let newer = restarts[key] else { return outcomes[key].flatMap { $0 } }
             task = newer
             generation = generations[key, default: 0]
         }
@@ -133,6 +149,31 @@ where Item.ID: Sendable {
         for (key, list) in lists where list.items.contains(where: { $0.id == id }) { invalidate(key) }
     }
 
+    /// Rows a write the server confirmed took out of a list (deleted, moved to another): the total follows, and the
+    /// list fills again. With rows left and more on the server, the next page comes (the row near the end that asks
+    /// for it already showed); emptied with more on the server, the first page is read again under the skeleton, so
+    /// the empty state comes only when the server says so. For offset/limit endpoints: a page-numbered one would
+    /// skip the rows that moved up. False when none of the ids was there.
+    @discardableResult
+    public func removeItems(_ ids: Set<Item.ID>, from key: Key) -> Bool {
+        var list = list(key)
+        let count = list.items.count
+        list.items.removeAll { ids.contains($0.id) }
+        let removed = count - list.items.count
+        guard removed > 0 else { return false }
+        if let total = list.total { list.total = max(total - removed, list.items.count) }
+        lists[key] = list
+        let moreOnServer = list.total.map { $0 > 0 } ?? list.hasMore
+        if list.items.isEmpty {
+            guard moreOnServer, restarts[key] == nil else { return true }
+            lists[key]?.status = .loading
+            startRestart(key)
+        } else if list.hasMore, nextPages[key] == nil, restarts[key] == nil {
+            _ = startNextPage(key)
+        }
+        return true
+    }
+
     /// A row changed by a write the server confirmed, in every list that shows it.
     public func updateItem(_ id: Item.ID, _ change: (inout Item) -> Void) {
         for (key, var list) in lists {
@@ -149,6 +190,7 @@ where Item.ID: Sendable {
         for task in nextPages.values { task.cancel() }
         restarts = [:]
         nextPages = [:]
+        outcomes = [:]
         lists = [:]
     }
 
@@ -182,7 +224,8 @@ where Item.ID: Sendable {
             let page = try await fetch(key, PageRequest(offset: 0, number: 1))
             try Task.checkCancellation()
             guard isCurrent(key, generation, epoch) else { return nil }
-            lists[key] = PagedList(items: Self.unique(page.items), hasMore: page.hasMore, status: .loaded, pages: 1)
+            lists[key] = PagedList(items: Self.unique(page.items), hasMore: page.hasMore, status: .loaded, pages: 1, total: page.total)
+            outcomes[key] = .some(nil)
             return nil
         } catch {
             let failure = isCancellation(error) ? nil : mapError(error)
@@ -194,6 +237,7 @@ where Item.ID: Sendable {
             // Read before the write: an assignment through `lists[key]?` that reads `lists` is an access conflict.
             let status: LoadStatus<Failure> = list(key).items.isEmpty && before != .loaded ? .failed(mapped) : .loaded
             lists[key]?.status = status
+            outcomes[key] = mapped
             return mapped
         }
     }
@@ -228,6 +272,7 @@ where Item.ID: Sendable {
             let known = Set(list.items.map(\.id))
             list.items += Self.unique(page.items.filter { !known.contains($0.id) })
             list.hasMore = page.hasMore
+            list.total = page.total ?? list.total
             list.pages += 1
             lists[key] = list
             return nil

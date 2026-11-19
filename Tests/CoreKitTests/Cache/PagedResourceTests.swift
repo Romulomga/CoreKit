@@ -154,6 +154,85 @@ import Testing
         #expect(resource.list("list").pages == 1)
     }
 
+    // MARK: - Total, rows taken out, and a refresh joined a restart replaced meanwhile
+
+    @Test func theTotalFollowsTheServerAndKeepsWhenAPageDoesNotSayIt() async {
+        let server = PageSpy { _ in Page(items: (0..<3).map { Row(id: $0) }, hasMore: true, total: 7) }
+        let resource = server.resource()
+        await resource.refresh("list")
+        #expect(resource.list("list").total == 7)
+
+        server.answer = { _ in Self.page(3, 3, hasMore: true) }
+        await resource.loadMore("list")
+        #expect(resource.list("list").total == 7, "a page that does not say keeps the last total")
+    }
+
+    /// QA 26/09 (Homer): 15 of 162 inactive posts deleted showed "nenhuma publicação". The page emptied by a write
+    /// reads the server again under the skeleton; the empty state comes only when the server says so.
+    @Test func aListEmptiedByAWriteReadsTheServerAgainUnderTheSkeleton() async {
+        let server = PageSpy { _ in Page(items: (0..<3).map { Row(id: $0) }, hasMore: true, total: 10) }
+        let resource = server.resource()
+        await resource.refresh("list")
+        server.gate.hold()
+        server.answer = { _ in Page(items: (3..<6).map { Row(id: $0) }, hasMore: true, total: 7) }
+
+        #expect(resource.removeItems([0, 1, 2], from: "list"))
+
+        #expect(resource.list("list").items.isEmpty)
+        #expect(resource.list("list").status == .loading, "the skeleton, never the empty state")
+        #expect(resource.list("list").total == 7)
+        server.gate.release()
+        await waitUntil { resource.list("list").status == .loaded }
+        #expect(resource.list("list").items.map(\.id) == [3, 4, 5])
+        #expect(server.requests.last == PageRequest(offset: 0, number: 1))
+    }
+
+    /// The row near the end that asks for the next page already showed before the rows moved up: the list fills itself.
+    @Test func rowsTakenOutBringTheNextPageWhenTheServerHasMore() async {
+        let server = PageSpy { _ in Page(items: (0..<3).map { Row(id: $0) }, hasMore: true, total: 6) }
+        let resource = server.resource()
+        await resource.refresh("list")
+        server.answer = { _ in Page(items: (3..<6).map { Row(id: $0) }, hasMore: false, total: 5) }
+
+        #expect(resource.removeItems([1], from: "list"))
+
+        await waitUntil { !resource.list("list").isLoadingMore && resource.list("list").items.count == 5 }
+        #expect(resource.list("list").items.map(\.id) == [0, 2, 3, 4, 5])
+        #expect(server.requests.last == PageRequest(offset: 2, number: 2), "the offset is the rows left")
+        #expect(resource.list("list").total == 5)
+    }
+
+    @Test func rowsThatWereNotThereChangeNothing() async {
+        let server = PageSpy { _ in Page(items: (0..<3).map { Row(id: $0) }, hasMore: false, total: 3) }
+        let resource = server.resource()
+        await resource.refresh("list")
+
+        #expect(!resource.removeItems([9], from: "list"))
+        #expect(resource.removeItems([0, 1, 2], from: "list"))
+
+        #expect(resource.list("list").status == .loaded, "emptied with nothing more on the server: the empty state")
+        #expect(resource.list("list").total == 0)
+        #expect(server.requests.count == 1)
+    }
+
+    /// A pull joined a restart that a write replaced, and the replacement landed first: the pull says what decided
+    /// the list, never the silence of the restart let go.
+    @Test func aRefreshSaysWhatTheRestartThatReplacedItsAnswered() async {
+        let server = PageSpy { _ in Self.page(0, 3, hasMore: false) }
+        let resource = server.resource()
+        await resource.refresh("list")
+        server.gate.hold()
+        let pulling = Task { await resource.refresh("list") }
+        await waitUntil { server.gate.waitingCount == 1 }
+
+        server.answer = { _ in throw TestFailure.offline }
+        resource.invalidate("list")
+        await waitUntil { server.gate.waitingCount == 2 }
+        server.gate.release()
+
+        #expect(await pulling.value == .offline)
+    }
+
     @Test func theEndOfTheSessionEmptiesTheListsAndDropsAnswersOnTheirWay() async {
         let server = PageSpy { _ in Self.page(0, 3, hasMore: true) }
         let resource = server.resource()

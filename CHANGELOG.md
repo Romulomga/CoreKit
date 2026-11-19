@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.20 - 2026-11-19
+
+- `PagedResource`: o `Page` e o `PagedList` ganham `total` (opcional; `Page(items:hasMore:)` continua valendo) e chega
+  o `removeItems(_:from:)`: linhas que uma escrita confirmada tirou da lista saem, o total acompanha e a lista se
+  completa (a próxima página, se o servidor tem mais; a primeira de novo sob o esqueleto, se esvaziou e o servidor
+  ainda tem). Para endpoints offset/limit. Vem do `MyPostsStore` do Homer (QA 26/09: excluir 15 de 162 mostrava
+  "nenhuma publicação").
+- Muda o `refresh(_:)`: quem juntou uma recarga trocada no meio do caminho (uma escrita, a busca mudou) e cuja
+  substituta já terminou recebe o resultado dela, não o silêncio da largada (decisão do dono, 19/11). Antes vinha `nil`.
+- Gêmeo do CoreKit-Android 0.1.16.
+
 ## 0.1.19 - 2026-11-18
 
 - `KeyedResource.reload(_:)` e `PagedResource.reload(_:)`: o valor (ou as linhas) da chave sai, a busca a caminho é
