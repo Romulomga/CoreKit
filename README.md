@@ -24,7 +24,7 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
   `TabNavigation`/`TabNavigationRoot`, `ReloadNotifier`/`onReload`, `NavigationDiagnostics`.
 - `CoreKitAnalytics`: `Analytics.start(engines:policy:)`, `Analytics.shared` (repassa a todos os motores),
   `Analytics.setCollectionEnabled(_:)` (a chave "Enviar estatísticas" do usuário, todos os motores de uma vez),
-  `AnalyticsClient` (com `setUserID` para app com conta, `setCrashKey` e `addBreadcrumb` para o relatório de falha;
+  `AnalyticsClient` (com `setUserID` para app com conta, `setUserProperties` com tipo e `setUserProfile` para o perfil do Mixpanel, `setCrashKey` e `addBreadcrumb` para o relatório de falha;
   nunca e-mail, nome nem o que o usuário digitou), `AnalyticsValue`, `CollectionPolicy.storeBuildsOnly` (debug nunca coleta, salvo com
   `--analytics-debug`; `--uitests` nunca), `trackScreen`. Erro registrado leva só domínio e código, nunca a mensagem.
 - `CoreKitFirebase`: motor `.firebase(options:)`, Analytics + Crashlytics sem IDFA. Não configura o Firebase de novo

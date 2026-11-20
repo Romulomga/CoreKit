@@ -171,6 +171,14 @@ final class AnalyticsHub: AnalyticsClient {
         clients.forEach { $0.setUserProperty(value, forName: name) }
     }
 
+    func setUserProperties(_ properties: [String: AnalyticsValue]) {
+        clients.forEach { $0.setUserProperties(properties) }
+    }
+
+    func setUserProfile(_ properties: [String: AnalyticsValue]) {
+        clients.forEach { $0.setUserProfile(properties) }
+    }
+
     /// Only the domain and the code travel: the message, the underlying error and the rest of the
     /// user info may quote what the user typed.
     func recordError(_ error: any Error, context: String?) {

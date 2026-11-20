@@ -12,6 +12,18 @@ public enum AnalyticsValue: Sendable, Hashable {
     case bool(Bool)
 }
 
+extension AnalyticsValue {
+    /// The value as text, for an engine that only takes text (`.bool(true)` → `"true"`).
+    public var text: String {
+        switch self {
+        case .string(let text): text
+        case .int(let number): String(number)
+        case .double(let number): String(number)
+        case .bool(let flag): flag ? "true" : "false"
+        }
+    }
+}
+
 extension AnalyticsValue: ExpressibleByStringInterpolation {
     public init(stringLiteral value: String) {
         self = .string(value)

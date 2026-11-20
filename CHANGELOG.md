@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.21 - 2026-11-20
+
+- `CoreKitAnalytics`: `AnalyticsClient.setUserProperties(_:)` (propriedades duráveis com o tipo guardado: no Mixpanel
+  um `Bool` continua booleano; motor que só aceita texto recebe o texto, `.bool(true)` → `"true"`) e
+  `setUserProfile(_:)` (o perfil da pessoa no motor que tem um, o `people.set` do Mixpanel; quem decide o que vai
+  nele é o app, decisão do dono, 20/11: o Homer manda nome, e-mail e telefone como o legado já mandava).
+  `AnalyticsValue.text`. Os dois têm implementação padrão, então nenhum cliente existente quebra.
+- `CoreKitMixpanel`: `registerSuperProperties` e `people.set` com os tipos de cada valor.
+- `CoreKitTesting`: o `RecordingAnalyticsClient` guarda `typedUserProperties` e `profiles`.
+- Só iOS por enquanto: o gêmeo no CoreKit-Android fica para quando o Homer Android migrar.
+
 ## 0.1.20 - 2026-11-19
 
 - `PagedResource`: o `Page` e o `PagedList` ganham `total` (opcional; `Page(items:hasMore:)` continua valendo) e chega

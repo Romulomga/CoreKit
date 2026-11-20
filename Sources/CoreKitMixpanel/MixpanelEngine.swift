@@ -72,6 +72,16 @@ struct MixpanelAnalyticsClient: AnalyticsClient {
         }
     }
 
+    /// Super properties with their types: a boolean stays a boolean.
+    func setUserProperties(_ properties: [String: AnalyticsValue]) {
+        Mixpanel.mainInstance().registerSuperProperties(properties.mapValues(Self.property))
+    }
+
+    /// Mixpanel's people profile (`people.set`), on the identified user.
+    func setUserProfile(_ properties: [String: AnalyticsValue]) {
+        Mixpanel.mainInstance().people.set(properties: properties.mapValues(Self.property))
+    }
+
     /// Mixpanel isn't a crash reporter; errors go to the app's (Crashlytics, Sentry).
     func recordError(_ error: any Error, context: String?) {}
 

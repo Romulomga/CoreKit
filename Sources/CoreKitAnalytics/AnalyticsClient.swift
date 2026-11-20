@@ -17,6 +17,15 @@ public protocol AnalyticsClient: Sendable {
     /// A durable property of this install, for segmenting every later event (`is_pro`,
     /// `entitlement`). `nil` clears it.
     func setUserProperty(_ value: String?, forName name: String)
+    /// Several durable properties with their types kept, for an engine that keeps types (Mixpanel's
+    /// super properties: a `Bool` stays a boolean, so an older report that filters on it keeps
+    /// working). An engine that only takes text gets each one as text (`.bool(true)` → `"true"`).
+    func setUserProperties(_ properties: [String: AnalyticsValue])
+    /// The signed-in person's profile, in an engine that keeps one (Mixpanel's people). The app
+    /// decides what goes in it and answers for it: unlike `setUserID`, this is where an app whose
+    /// reports already read a name or a contact keeps sending them. An engine without profiles
+    /// ignores it.
+    func setUserProfile(_ properties: [String: AnalyticsValue])
 
     /// A non-fatal error for the crash reporter, with an optional breadcrumb of where it happened.
     /// `Analytics.shared` sends only the error's domain and code: its message may quote the user's
@@ -56,6 +65,14 @@ public protocol AnalyticsClient: Sendable {
 }
 
 extension AnalyticsClient {
+    public func setUserProperties(_ properties: [String: AnalyticsValue]) {
+        for (name, value) in properties.sorted(by: { $0.key < $1.key }) {
+            setUserProperty(value.text, forName: name)
+        }
+    }
+
+    public func setUserProfile(_ properties: [String: AnalyticsValue]) {}
+
     /// An engine's client is switched through its `AnalyticsEngine`, not here.
     @MainActor
     public func setCollectionEnabled(_ enabled: Bool) {}

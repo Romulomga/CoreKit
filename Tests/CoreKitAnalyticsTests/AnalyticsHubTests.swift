@@ -18,6 +18,8 @@ struct AnalyticsHubTests {
         hub.log("document_issued", parameters: ["kind": "receipt", "has_signature": true])
         hub.screen("home")
         hub.setUserProperty("true", forName: "is_pro")
+        hub.setUserProperties(["is_notification_enabled": true])
+        hub.setUserProfile(["$name": "Ana"])
         hub.recordError(SampleError(), context: "loadProducts")
         hub.logPurchase(PurchaseRevenue(itemID: "yearly", valueCents: 2490, currency: "BRL"))
 
@@ -25,6 +27,8 @@ struct AnalyticsHubTests {
             #expect(spy.client.events == [.init("document_issued", ["kind": "receipt", "has_signature": true])])
             #expect(spy.client.screens == ["home"])
             #expect(spy.client.userProperties == ["is_pro": "true"])
+            #expect(spy.client.typedUserProperties == ["is_notification_enabled": true])
+            #expect(spy.client.profiles == [["$name": "Ana"]])
             #expect(spy.client.errors.map(\.context) == ["loadProducts"])
             #expect(spy.client.purchases.map(\.valueCents) == [2490])
         }

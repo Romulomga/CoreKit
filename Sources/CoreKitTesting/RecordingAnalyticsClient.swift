@@ -29,6 +29,8 @@ public final class RecordingAnalyticsClient: AnalyticsClient {
         var events: [Event] = []
         var screens: [String] = []
         var userProperties: [String: String] = [:]
+        var typedUserProperties: [String: AnalyticsValue] = [:]
+        var profiles: [[String: AnalyticsValue]] = []
         var errors: [RecordedError] = []
         var transactionIDs: [UInt64] = []
         var purchases: [PurchaseRevenue] = []
@@ -50,6 +52,12 @@ public final class RecordingAnalyticsClient: AnalyticsClient {
 
     /// The current value of each property; a property set to `nil` is gone.
     public var userProperties: [String: String] { recorded.withLock { $0.userProperties } }
+
+    /// The current value of each property set with its type (`setUserProperties`).
+    public var typedUserProperties: [String: AnalyticsValue] { recorded.withLock { $0.typedUserProperties } }
+
+    /// Every `setUserProfile`, in order.
+    public var profiles: [[String: AnalyticsValue]] { recorded.withLock { $0.profiles } }
 
     public var errors: [RecordedError] { recorded.withLock { $0.errors } }
 
@@ -92,6 +100,14 @@ public final class RecordingAnalyticsClient: AnalyticsClient {
 
     public func setUserProperty(_ value: String?, forName name: String) {
         recorded.withLock { $0.userProperties[name] = value }
+    }
+
+    public func setUserProperties(_ properties: [String: AnalyticsValue]) {
+        recorded.withLock { $0.typedUserProperties.merge(properties) { _, new in new } }
+    }
+
+    public func setUserProfile(_ properties: [String: AnalyticsValue]) {
+        recorded.withLock { $0.profiles.append(properties) }
     }
 
     public func recordError(_ error: any Error, context: String?) {
