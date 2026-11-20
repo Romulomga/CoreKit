@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.22 - 2026-11-20
+
+- `CoreKitNavigation`: uma rota de folha com `presentationDetent` vazio deixa a altura para a tela. O `NavigationHost`
+  não põe `presentationDetents` por cima, e a folha que se ajusta ao conteúdo (o `FittedSheet` do Homer) mantém a
+  altura dela; antes o conjunto vazio virava altura cheia. O padrão do protocolo continua `[.large]`, então nenhuma
+  rota existente muda. Pedido pela folha "Ligar" do Homer, que virou rota (decisão do dono, 20/11).
+- Só iOS: o CoreKit-Android não tem esse modificador.
+
 ## 0.1.21 - 2026-11-20
 
 - `CoreKitAnalytics`: `AnalyticsClient.setUserProperties(_:)` (propriedades duráveis com o tipo guardado: no Mixpanel

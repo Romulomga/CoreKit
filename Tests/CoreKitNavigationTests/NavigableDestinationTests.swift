@@ -22,6 +22,13 @@ import Testing
         #expect(TestDestination.root.presentationDetent.isEmpty)
     }
 
+    /// An empty set leaves the sheet's height to the screen (one that fits its content); any other is the host's.
+    @Test func aRouteWithoutDetentsLeavesThemToTheScreen() {
+        #expect(SheetDetents(detents: []).isLeftToTheScreen)
+        #expect(!SheetDetents(detents: [.large]).isLeftToTheScreen)
+        #expect(!SheetDetents(detents: [.medium, .large]).isLeftToTheScreen)
+    }
+
     @Test func aPlainRouteNavigatesAndSwitchesTabs() {
         let coordinator = Coordinator<PlainRoute>()
         coordinator.navigate(to: .list)

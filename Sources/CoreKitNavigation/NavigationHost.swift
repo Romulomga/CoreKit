@@ -86,7 +86,7 @@ public struct NavigationHost<D: NavigableDestination, Content: View>: View {
         .modifier(OptionalTint(tint: tint))
         .sheet(item: $coordinator.sheetDestination) { destination in
             resolveModal(destination)
-                .presentationDetents(destination.presentationDetent)
+                .modifier(SheetDetents(detents: destination.presentationDetent))
                 .presentationDragIndicator(.visible)
         }
         .fullScreenCover(item: $coordinator.fullCoverDestination) { destination in
@@ -182,6 +182,23 @@ private struct TabBarVisibility: ViewModifier {
                     }
                 }
                 .toolbar(isVisible ? .visible : .hidden, for: .tabBar)
+        }
+    }
+}
+
+/// The route's detents on its sheet; none when the route leaves them to the screen (an empty set). A sheet that sizes
+/// itself to its content sets its own, and the host's would win over it: the sheet opened at full height.
+struct SheetDetents: ViewModifier {
+    let detents: Set<PresentationDetent>
+
+    var isLeftToTheScreen: Bool { detents.isEmpty }
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if isLeftToTheScreen {
+            content
+        } else {
+            content.presentationDetents(detents)
         }
     }
 }

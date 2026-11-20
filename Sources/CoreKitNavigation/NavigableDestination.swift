@@ -17,7 +17,8 @@ public protocol NavigableDestination: Hashable, Identifiable, SendableMetatype {
     /// with its own `NavigationStack`) would otherwise get a second navigation bar.
     var isStandalone: Bool { get }
 
-    /// The detents of the sheet that presents this destination.
+    /// The detents of the sheet that presents this destination. Empty leaves them to the screen: one that sizes itself to
+    /// its content sets its own `presentationDetents`, and the host adds none over it.
     var presentationDetent: Set<PresentationDetent> { get }
 
     /// What `NavigationDiagnostics` reports while this destination is on screen. The report
