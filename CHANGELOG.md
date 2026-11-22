@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.23 - 2026-11-21
+
+- `CoreKitTesting`: `waitUntil` (espera a condição sobre o `eventually` e registra a falha no ponto de chamada quando
+  ela não chega: costuma ser a pré-condição de um `release()` ou `cancel()`, e seguir calado trava o teste num portão)
+  e `holdsThroughout` (verdadeiro quando a condição valeu em todas as voltas da janela: "isso não acontece", como o
+  segundo toque que um `SingleFlight` segura). Moravam copiados nos testes do Homer e do reference-app (decisão do
+  dono, 21/11). Um `waitUntil` declarado no próprio app continua valendo: o do módulo local tem precedência.
+- Só iOS: no CoreKit-Android, `runTest` e o `MainDispatcherRule` fazem o papel do `eventually`.
+
 ## 0.1.22 - 2026-11-20
 
 - `CoreKitNavigation`: uma rota de folha com `presentationDetent` vazio deixa a altura para a tela. O `NavigationHost`

@@ -51,12 +51,13 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
   `Info.plist` tem as duas chaves (sem elas, registrar derrubaria o app).
 - `CoreKitTesting`: `RecordingAnalyticsClient`, `FakeStoreGateway`, `FakeEntitlementMemory`, `eventually` (espera,
   sem travar o main actor, o que chega à ViewModel por um fluxo; o prazo conta voltas do main actor, não o relógio,
-  para não estourar quando as suítes rodam em paralelo), `ArchitectureCheck`/`ArchitectureRule` (um teste
+  para não estourar quando as suítes rodam em paralelo), `waitUntil` (espera e falha no lugar quando não chega) e
+  `holdsThroughout` (para "isso não acontece"), sobre o `eventually`, `ArchitectureCheck`/`ArchitectureRule` (um teste
   que lê o código do app e aponta arquivo e linha que fogem da arquitetura: objeto do banco numa View, pasta `Views/`).
 
 Só no iOS: `ReloadNotifier`, `NavigationDiagnostics`, a barra de abas escondida no push, a
 validade da assinatura dentro de `EntitlementKind`, `AsyncStream.observing` (no Android, o `Flow` do Room mapeado
-para o estado da tela com `stateInScreen`), `eventually` (no Android, `runTest` e o `MainDispatcherRule`) e
+para o estado da tela com `stateInScreen`), `eventually`, `waitUntil` e `holdsThroughout` (no Android, `runTest` e o `MainDispatcherRule`) e
 `ArchitectureCheck` (entra no CoreKit-Android quando houver um app Android no mesmo padrão).
 
 ## Uso num app
