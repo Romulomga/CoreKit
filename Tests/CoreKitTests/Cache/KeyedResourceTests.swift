@@ -62,7 +62,40 @@ import Testing
 
         await runCancelled { await resource.refresh(1) }
 
-        #expect(resource.entry(1).status == .loaded, "the fetch is the cache's, not the cancelled caller's")
+        await waitUntil { resource.entry(1).status == .loaded }
+        #expect(resource.entry(1).value == "value 1", "the fetch is the cache's, not the cancelled caller's")
+    }
+
+    /// The screen that waits leaves: its wait ends at once (nothing holds it until the server answers), the fetch
+    /// lands in the cache, and another caller waiting for the same fetch gets its answer.
+    @Test func aCancelledCallerStopsWaitingAndTheFetchStillLandsForTheOthers() async {
+        let server = FetchSpy<Int, String> { _ in throw TestFailure.offline }
+        server.gate.hold()
+        let resource = server.resource()
+        let staying = Task { await resource.refresh(1) }
+        await waitUntil { server.gate.waitingCount == 1 }
+        var leftDone = false
+        let leaving = Task {
+            let failure = await resource.refresh(1)
+            leftDone = true
+            return failure
+        }
+        for _ in 0..<5 { await Task.yield() }
+
+        leaving.cancel()
+        await waitUntil { leftDone }
+        #expect(server.gate.waitingCount == 1, "it gave up with the fetch still on its way")
+
+        server.gate.release()
+        #expect(await leaving.value == nil, "a cancellation is never a failure")
+        #expect(await staying.value == .offline, "the other caller gets the fetch's answer")
+        #expect(resource.entry(1).status == .failed(.offline))
+        #expect(server.calls == [1], "one fetch for both")
+
+        server.answer = { "value \($0)" }
+        await runCancelled { await resource.refresh(1) }
+        await waitUntil { resource.entry(1).status == .loaded }
+        #expect(resource.entry(1).value == "value 1", "a fetch whose only caller left still lands")
     }
 
     /// A failure with nothing shown is the screen's error; the next opening (or return) asks again, as every

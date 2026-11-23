@@ -59,6 +59,71 @@ import Testing
         #expect(!resource.list("list").isLoadingMore)
     }
 
+    /// The screen that waits for a restart leaves: its wait ends at once, the first page lands in the cache, and
+    /// another caller waiting for the same restart gets its answer.
+    @Test func aCancelledRefreshStopsWaitingAndThePageStillLandsForTheOthers() async {
+        let server = PageSpy { _ in Self.page(0, 3, hasMore: true) }
+        server.gate.hold()
+        let resource = server.resource()
+        let staying = Task { await resource.refresh("list") }
+        await waitUntil { server.gate.waitingCount == 1 }
+        var leftDone = false
+        let leaving = Task {
+            let failure = await resource.refresh("list")
+            leftDone = true
+            return failure
+        }
+        for _ in 0..<5 { await Task.yield() }
+
+        leaving.cancel()
+        await waitUntil { leftDone }
+        #expect(server.gate.waitingCount == 1, "it gave up with the page still on its way")
+
+        server.answer = { _ in throw TestFailure.offline }
+        server.gate.release()
+        #expect(await leaving.value == nil)
+        #expect(await staying.value == .offline, "the other caller gets the restart's answer")
+        #expect(server.requests.count == 1, "one restart for both")
+
+        server.answer = { _ in Self.page(0, 3, hasMore: true) }
+        server.gate.hold()
+        let rowLeaving = Task { await resource.refresh("list") }
+        await waitUntil { server.gate.waitingCount == 1 }
+        rowLeaving.cancel()
+        server.gate.release()
+        #expect(await rowLeaving.value == nil)
+        await waitUntil { resource.list("list").status == .loaded }
+        #expect(resource.list("list").items.map(\.id) == [0, 1, 2], "a restart whose only caller left still lands")
+    }
+
+    @Test func aCancelledLoadMoreStopsWaitingAndThePageStillLandsForTheOthers() async {
+        let server = PageSpy { _ in Self.page(0, 3, hasMore: true) }
+        let resource = server.resource()
+        await resource.refresh("list")
+        server.answer = { _ in Self.page(3, 3, hasMore: false) }
+        server.gate.hold()
+
+        let staying = Task { await resource.loadMore("list") }
+        await waitUntil { server.gate.waitingCount == 1 }
+        var leftDone = false
+        let leaving = Task {
+            let failure = await resource.loadMore("list")
+            leftDone = true
+            return failure
+        }
+        for _ in 0..<5 { await Task.yield() }
+
+        leaving.cancel()
+        await waitUntil { leftDone }
+        #expect(server.gate.waitingCount == 1, "it gave up with the page still on its way")
+
+        server.gate.release()
+        #expect(await leaving.value == nil)
+        #expect(await staying.value == nil)
+        #expect(resource.list("list").items.map(\.id) == Array(0..<6), "the page lands in the cache")
+        #expect(server.requests.count == 2, "one next page for both")
+    }
+
     /// The rows on screen belong to the old list: their count would be the offset of the new one.
     @Test func noNextPageLeavesWhileThePageRestartsAndAPageOnItsWayIsLetGo() async {
         let server = PageSpy { _ in Self.page(0, 3, hasMore: true) }

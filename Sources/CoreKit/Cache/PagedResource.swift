@@ -63,7 +63,7 @@ public struct PagedList<Item: Identifiable & Equatable & Sendable, Failure: Erro
 /// CoreKit-Android's `PagedResource`. `mapError` works as in `KeyedResource`. A restart (pull, retry, a write that may have landed)
 /// replaces the first page and lets the next page on its way go; no next page leaves while a restart is on
 /// its way (the rows on screen are the old list, and their count would be the offset of the new one);
-/// every fetch runs in a task of its own, so leaving the screen never cancels it.
+/// every fetch runs in a task of its own, so leaving the screen never cancels it, only the wait.
 @MainActor
 @Observable
 public final class PagedResource<Key: Hashable & Sendable, Item: Identifiable & Equatable & Sendable, Failure: Error & Equatable & Sendable>
@@ -103,14 +103,16 @@ where Item.ID: Sendable {
 
     /// Pull to refresh and "Tentar de novo": joins the restart on its way. The error is for a toast; the
     /// rows on screen stay until the new first page lands. A restart joined here can be replaced while it runs (a
-    /// write landed, the query moved): the caller gets the answer of the one that decides the list.
+    /// write landed, the query moved): the caller gets the answer of the one that decides the list. A caller whose own
+    /// task is cancelled (the screen left) stops waiting at once and gets nil, as for any cancellation; the restart
+    /// goes on and lands in the cache, and others waiting for it still get its answer.
     @discardableResult
     public func refresh(_ key: Key) async -> Failure? {
         var task = restarts[key] ?? startRestart(key)
         var generation = generations[key, default: 0]
         let epoch = epoch
         while true {
-            let outcome = await task.value
+            guard let outcome = await task.outcome() else { return nil }
             guard epoch == self.epoch, generation != generations[key, default: 0] else { return outcome }
             guard let newer = restarts[key] else { return outcomes[key].flatMap { $0 } }
             task = newer
@@ -118,13 +120,14 @@ where Item.ID: Sendable {
         }
     }
 
-    /// The next page; the error is for a toast. A row's `.task` that asks for it can go: the page lands anyway.
+    /// The next page; the error is for a toast. A row's `.task` that asks for it can go: the page lands anyway, and the
+    /// cancelled caller stops waiting at once (nil).
     @discardableResult
     public func loadMore(_ key: Key) async -> Failure? {
-        if let running = nextPages[key] { return await running.value }
+        if let running = nextPages[key] { return await running.outcome() ?? nil }
         let list = list(key)
         guard list.status == .loaded, list.hasMore, restarts[key] == nil else { return nil }
-        return await startNextPage(key).value
+        return await startNextPage(key).outcome() ?? nil
     }
 
     /// Something may have changed on the server: a list ever shown reads its first page again, quietly.

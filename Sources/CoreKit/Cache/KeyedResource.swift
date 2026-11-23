@@ -5,7 +5,7 @@ import Observation
 /// repositories for data that lives on the server (the "online" way of a subject). Twin of CoreKit-Android's
 /// `KeyedResource`.
 ///
-/// Every fetch runs in a task of its own: leaving a screen stops its reading, never the fetch, and callers at the same
+/// Every fetch runs in a task of its own: leaving a screen stops its wait, never the fetch, and callers at the same
 /// time wait for the same task (not `SingleFlight`, which would drop the second caller). An answer that left before a
 /// newer fetch, a write or `clear()` is dropped when it lands.
 ///
@@ -51,7 +51,8 @@ public final class KeyedResource<Key: Hashable & Sendable, Value: Equatable & Se
     }
 
     /// "Tentar de novo" and pull to refresh: joins the fetch on its way (and the one that replaced it). The failure is
-    /// for a toast; a value on screen stays.
+    /// for a toast; a value on screen stays. A caller whose own task is cancelled (the screen left) stops waiting at once
+    /// and gets nil, as for any cancellation; the fetch goes on and lands in the cache, and others waiting still get it.
     @discardableResult
     public func refresh(_ key: Key) async -> Failure? {
         var task = tasks[key] ?? start(key)
@@ -59,7 +60,7 @@ public final class KeyedResource<Key: Hashable & Sendable, Value: Equatable & Se
         let epoch = epoch
 
         while true {
-            let outcome = await task.value
+            guard let outcome = await task.outcome() else { return nil }
 
             guard epoch == self.epoch, generation != generations[key, default: 0], let newer = tasks[key] else { return outcome }
 

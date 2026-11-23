@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.24 - 2026-11-23
+
+- Muda o `PagedResource.refresh(_:)`/`loadMore(_:)` e o `KeyedResource.refresh(_:)`: quem espera desiste quando a
+  própria Task é cancelada (a tela saiu) e recebe `nil` na hora, como todo cancelamento (nunca é falha). A busca
+  segue, grava no cache, e os outros que esperam a mesma busca recebem a resposta dela. Antes a espera era
+  `task.value`, que não responde ao cancelamento de quem espera: a tela que saiu ficava presa até o servidor
+  responder, e o Homer precisava de um helper próprio para soltar a ViewModel no pop (decisão do dono, 23/11).
+  Quem chama e precisa distinguir "cancelado" de "carregou" confere `Task.isCancelled` depois da espera.
+- Gêmeo do CoreKit-Android, que já era assim: o `Deferred.outcome()` relança o cancelamento de quem espera e a busca
+  roda no escopo do app.
+
 ## 0.1.23 - 2026-11-21
 
 - `CoreKitTesting`: `waitUntil` (espera a condição sobre o `eventually` e registra a falha no ponto de chamada quando
