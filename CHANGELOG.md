@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.25 - 2026-11-25
+
+- `CoreKitNetwork`: `OfflineNetworkMonitor`, um `NetworkMonitoring` que sempre diz "sem rede", para a flag de debug
+  que mostra a tela offline (o simulador não tem modo avião pela linha de comando). Morava copiado no reference-app
+  (`OfflineMonitor`). Gêmeo do `OfflineNetworkMonitor` do CoreKit-Android 0.1.18 (decisão do dono, 25/11).
+- `CoreKitNavigation`: o comentário do `NavigationDiagnostics` deixa de dizer "só iOS": o CoreKit-Android 0.1.18 tem
+  o gêmeo.
+
 ## 0.1.24 - 2026-11-23
 
 - Muda o `PagedResource.refresh(_:)`/`loadMore(_:)` e o `KeyedResource.refresh(_:)`: quem espera desiste quando a

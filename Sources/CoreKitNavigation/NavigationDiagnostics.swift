@@ -7,7 +7,8 @@ import os
 /// `routeName`. More than one place can listen (analytics and a crash reporter): each extra one
 /// joins with `addObserver(_:)` and leaves with `removeObserver(_:)`.
 ///
-/// The observers live in a lock-protected `static let`, not in a mutable global. iOS only for now.
+/// The observers live in a lock-protected `static let`, not in a mutable global. Twin of the CoreKit-Android
+/// `NavigationDiagnostics` (0.1.18), whose `ReportVisibleRoute` reports the top of the selected tab.
 public enum NavigationDiagnostics {
 
     public typealias Observer = @MainActor @Sendable (String) -> Void
