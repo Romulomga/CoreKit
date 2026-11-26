@@ -1,4 +1,4 @@
-import CoreKitTesting
+import CoreKitArchitecture
 import Foundation
 import Testing
 

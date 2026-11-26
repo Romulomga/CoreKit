@@ -8,8 +8,11 @@ import PackageDescription
 
 let package = Package(
     name: "CoreKit",
+    // macOS only for CoreKitArchitecture: the architecture rules read source files and run with
+    // `swift test` on the Mac in seconds, without building an app. No other target is built for macOS.
     platforms: [
-        .iOS(.v17)
+        .iOS(.v17),
+        .macOS(.v14),
     ],
     products: [
         .library(name: "CoreKit", targets: ["CoreKit"]),
@@ -23,6 +26,7 @@ let package = Package(
         .library(name: "CoreKitNetwork", targets: ["CoreKitNetwork"]),
         .library(name: "CoreKitSync", targets: ["CoreKitSync"]),
         .library(name: "CoreKitTesting", targets: ["CoreKitTesting"]),
+        .library(name: "CoreKitArchitecture", targets: ["CoreKitArchitecture"]),
     ],
     dependencies: [
         .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "12.15.0"),
@@ -52,7 +56,9 @@ let package = Package(
         .target(name: "CoreKitPersistence"),
         .target(name: "CoreKitNetwork"),
         .target(name: "CoreKitSync"),
-        .target(name: "CoreKitTesting", dependencies: ["CoreKitAnalytics", "CoreKitStore"]),
+        .target(name: "CoreKitTesting", dependencies: ["CoreKitAnalytics", "CoreKitStore", "CoreKitArchitecture"]),
+        // Foundation only, iOS and macOS: an app's architecture tests can live in a macOS package.
+        .target(name: "CoreKitArchitecture"),
 
         .testTarget(name: "CoreKitTests", dependencies: ["CoreKit", "CoreKitTesting"]),
         .testTarget(name: "CoreKitNavigationTests", dependencies: ["CoreKitNavigation"]),
@@ -72,5 +78,6 @@ let package = Package(
         .testTarget(name: "CoreKitPersistenceTests", dependencies: ["CoreKitPersistence"]),
         .testTarget(name: "CoreKitNetworkTests", dependencies: ["CoreKitNetwork"]),
         .testTarget(name: "CoreKitTestingTests", dependencies: ["CoreKitTesting"]),
+        .testTarget(name: "CoreKitArchitectureTests", dependencies: ["CoreKitArchitecture"]),
     ]
 )

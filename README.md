@@ -52,8 +52,11 @@ declaradas (Firebase, Mixpanel), mas só compila as dos módulos usados.
 - `CoreKitTesting`: `RecordingAnalyticsClient`, `FakeStoreGateway`, `FakeEntitlementMemory`, `eventually` (espera,
   sem travar o main actor, o que chega à ViewModel por um fluxo; o prazo conta voltas do main actor, não o relógio,
   para não estourar quando as suítes rodam em paralelo), `waitUntil` (espera e falha no lugar quando não chega) e
-  `holdsThroughout` (para "isso não acontece"), sobre o `eventually`, `ArchitectureCheck`/`ArchitectureRule` (um teste
-  que lê o código do app e aponta arquivo e linha que fogem da arquitetura: objeto do banco numa View, pasta `Views/`).
+  `holdsThroughout` (para "isso não acontece"), sobre o `eventually`, e reexporta o `CoreKitArchitecture`.
+- `CoreKitArchitecture` (iOS e macOS, só `Foundation`, desde a 0.1.26): `ArchitectureCheck`/`ArchitectureRule`, um
+  teste que lê o código do app e aponta arquivo e linha que fogem da arquitetura (objeto do banco numa View, pasta
+  `Views/`). Roda também num pacote de macOS do app (`swift test`, sem compilar o app), para caber num hook de poucos
+  segundos. Quem importa o `CoreKitTesting` continua vendo os dois tipos.
 
 Só no iOS: `ReloadNotifier`, `NavigationDiagnostics`, a barra de abas escondida no push, a
 validade da assinatura dentro de `EntitlementKind`, `AsyncStream.observing` (no Android, o `Flow` do Room mapeado
