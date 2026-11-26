@@ -51,3 +51,18 @@ import Testing
         #expect(ArchitectureCheck.modelTypeNames(in: root) == ["Household", "Person"])
     }
 }
+
+@Suite struct ArchitectureCheckPatternTests {
+
+    /// `NSRegularExpression` refuses an unescaped `}` that `range(of:options:)` accepts: the rule still applies.
+    @Test func aPatternTheCompiledFormRefusesStillApplies() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        try "    }\n".write(to: root.appending(path: "A.swift"), atomically: true, encoding: .utf8)
+
+        let rule = ArchitectureRule("closing brace", files: { _ in true }, forbidding: #"^(})$"#)
+
+        #expect(ArchitectureCheck.violations(in: root, rules: [rule]) == ["A.swift:1: closing brace: }"])
+    }
+}

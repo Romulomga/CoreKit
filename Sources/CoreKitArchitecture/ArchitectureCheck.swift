@@ -25,6 +25,9 @@ public enum ArchitectureCheck {
     /// found under `root`. Empty when the sources follow the rules.
     public static func violations(in root: URL, rules: [ArchitectureRule], forbiddenFolders: Set<String> = []) -> [String] {
         var found: [String] = []
+        // Compiled once per check, not once per line: an app has thousands of lines and dozens of rules.
+        // A pattern `NSRegularExpression` refuses (an unescaped `}`) keeps the slower `range(of:)`, as before 0.1.27.
+        let compiled = rules.map { rule in (rule: rule, regex: try? NSRegularExpression(pattern: rule.pattern)) }
 
         for path in swiftFiles(in: root) {
             let components = path.split(separator: "/").dropLast().map(String.init)
@@ -33,14 +36,17 @@ public enum ArchitectureCheck {
                 found.append("\(path): folder \(folder)/ is not allowed")
             }
 
-            let applicable = rules.filter { $0.fileMatches(path) }
+            let applicable = compiled.filter { $0.rule.fileMatches(path) }
             guard !applicable.isEmpty, let text = try? String(contentsOf: root.appending(path: path), encoding: .utf8) else { continue }
 
             for (index, line) in text.components(separatedBy: .newlines).enumerated() {
                 let code = line.trimmingCharacters(in: .whitespaces)
                 guard !code.hasPrefix("//") else { continue }
 
-                for rule in applicable where code.range(of: rule.pattern, options: .regularExpression) != nil {
+                let range = NSRange(code.startIndex..., in: code)
+
+                for (rule, regex) in applicable where regex.map({ $0.firstMatch(in: code, range: range) != nil })
+                    ?? (code.range(of: rule.pattern, options: .regularExpression) != nil) {
                     found.append("\(path):\(index + 1): \(rule.name): \(code)")
                 }
             }
